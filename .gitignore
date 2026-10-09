@@ -1,0 +1,12 @@
+# Build outputs
+obj/
+bin/
+*.o
+*.d
+*.ga
+hello
+factorial
+
+# Temporary files
+*~
+.*.swp
