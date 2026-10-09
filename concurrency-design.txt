@@ -1,0 +1,373 @@
+GARUDALANG (GaLang) — Concurrency Design
+=========================================
+Lightweight, fast, memory-efficient, CPU-efficient.
+Last updated: 2026-10-09
+
+────────────────────────────────────────────────────────
+1. PHILOSOPHY
+────────────────────────────────────────────────────────
+Garurda's concurrency model is inspired by Go's goroutines:
+  - Lightweight coroutines (not OS threads)
+  - M:N scheduling (many coroutines on few OS threads)
+  - Small initial stack (2KB), grows on demand
+  - Built-in channels for communication
+  - No shared state by default (message passing)
+
+Goals:
+  - Spawn 10,000+ coroutines without OOM
+  - Context switch < 500ns
+  - Minimal CPU overhead
+  - No manual thread management
+
+────────────────────────────────────────────────────────
+2. KEYWORDS & SYNTAX
+────────────────────────────────────────────────────────
+Spawn coroutine:
+  spawn fn() {
+      print("Hello from coroutine");
+  }
+
+Channel creation:
+  let ch: chan<int> = make(chan<int>);           // unbuffered
+  let ch: chan<int> = make(chan<int>, 10);       // buffered
+
+Send to channel:
+  ch <- 42;
+
+Receive from channel:
+  let val: int = <-ch;
+
+Select (multiplexing):
+  select {
+      msg1 <- ch1 => print(msg1),
+      msg2 <- ch2 => print(msg2),
+      default => print("No message")
+  }
+
+Close channel:
+  close(ch);
+
+────────────────────────────────────────────────────────
+3. COROUTINE (GOROUTINE)
+────────────────────────────────────────────────────────
+A coroutine is a lightweight, user-space thread.
+
+Properties:
+  - Initial stack size: 2KB
+  - Max stack size: 1MB (configurable)
+  - Stack grows/shrinks automatically (segmented)
+  - Creation cost: < 1μs
+  - Context switch: < 500ns
+  - Scheduled by runtime, not OS
+
+Example:
+  fn worker(id: int, jobs: chan<int>, results: chan<int>) {
+      for job in jobs {
+          let result: int = process(job);
+          results <- result;
+      }
+  }
+
+  fn main() {
+      let jobs: chan<int> = make(chan<int>, 100);
+      let results: chan<int> = make(chan<int>, 100);
+
+      spawn worker(1, jobs, results);
+      spawn worker(2, jobs, results);
+      spawn worker(3, jobs, results);
+  }
+
+────────────────────────────────────────────────────────
+4. CHANNEL
+────────────────────────────────────────────────────────
+Channels are typed pipes for communication between coroutines.
+
+Types:
+  chan<T>           // unbuffered (synchronous)
+  chan<T, N>        // buffered (asynchronous, capacity N)
+
+Operations:
+  ch <- value       // send
+  let v = <-ch      // receive
+  close(ch)         // close (no more sends)
+  ch.closed         // check if closed
+
+Buffered channel:
+  - Uses ring buffer (circular queue)
+  - Blocks only when full (send) or empty (receive)
+  - No locking for single producer/consumer
+
+Unbuffered channel:
+  - Synchronous handoff
+  - Sender blocks until receiver ready
+  - Zero-copy when possible
+
+────────────────────────────────────────────────────────
+5. SCHEDULER (M:N MODEL)
+────────────────────────────────────────────────────────
+Runtime architecture:
+
+  OS Threads (M)          Logical Processors (P)
+  ┌───────────┐           ┌───────────┐
+  │  OS 1     │ ←─────────│  P1       │
+  └───────────┘           │  Runqueue │
+  ┌───────────┐           │  [G1, G2] │
+  │  OS 2     │ ←─────────│  [G3, G4] │
+  └───────────┘           ├───────────┤
+  ┌───────────┐           │  P2       │
+  │  OS 3     │ ←─────────│  Runqueue │
+  └───────────┘           │  [G5, G6] │
+                          └───────────┘
+
+Components:
+  G (Goroutine)  : unit of work
+  M (Machine)    : OS thread
+  P (Processor)  : logical processor, owns runqueue
+
+Scheduling:
+  1. Each P has a local runqueue (double-ended queue)
+  2. M executes G from P's runqueue
+  3. When P's queue empty, steal from other P (work stealing)
+  4. No global lock, scalable to many cores
+
+Work Stealing:
+  - Idle P steals goroutines from busy P
+  - Random victim selection (reduces contention)
+  - Load balancing automatic
+
+────────────────────────────────────────────────────────
+6. STACK MANAGEMENT
+────────────────────────────────────────────────────────
+Each coroutine has its own stack.
+
+Initial state:
+  - 2KB stack (like Go)
+  - Segmented (not contiguous)
+  - No pre-allocation
+
+Growth:
+  - When stack nearly full, allocate new segment
+  - Copy pointers from old to new segment
+  - Old segments freed when no longer needed
+  - Max stack: 1GB (configurable, default 1MB)
+
+Shrink:
+  - Periodic garbage collection of unused stack segments
+  - Triggered after GC cycle or explicit check
+
+Memory layout:
+  [Stack segment 1: 2KB]  ← active
+  [Stack segment 2: 2KB]  ← older
+  [Stack segment 3: 2KB]  ← oldest, may be freed
+  ...
+
+────────────────────────────────────────────────────────
+7. CONTEXT SWITCHING
+────────────────────────────────────────────────────────
+Goroutine-to-goroutine (user-space):
+  - Save: PC, SP, registers
+  - Restore: PC, SP, registers
+  - No kernel transition
+  - Cost: < 500ns
+
+Goroutine-to-OS thread (when blocking):
+  - M (OS thread) blocks on syscall
+  - P (processor) detached, attached to another M
+  - New M created if needed
+  - Goroutine resumes when syscall completes
+
+Preemption:
+  - Preemptive: coroutine can be interrupted after N instructions
+  - Prevents starvation (long-running coroutine)
+  - Implemented via signal/check mechanism
+  - Not cooperative (no need for explicit yield)
+
+────────────────────────────────────────────────────────
+8. CHANNEL IMPLEMENTATION
+────────────────────────────────────────────────────────
+Unbuffered channel:
+  - Uses mutex + condition variable
+  - Sender and receiver must both be ready
+  - Zero-copy handoff when possible
+
+  send(ch, value):
+      lock(ch.mu)
+      while ch.closed:
+          unlock and return error
+      while ch.buffer not empty:
+          wait(ch.recvCond)
+      ch.buffer = value
+      signal(ch.sendCond)
+      unlock
+
+  recv(ch):
+      lock(ch.mu)
+      while ch.buffer empty:
+          wait(ch.sendCond)
+      value = ch.buffer
+      signal(ch.recvCond)
+      unlock
+      return value
+
+Buffered channel:
+  - Uses ring buffer (circular array)
+  - Lock-free for single producer/consumer
+  - Lock-based for multiple producers/consumers
+
+  Ring buffer:
+      [ ][ ][ ][ ][ ]  capacity N
+       ↑               head (read)
+               ↑       tail (write)
+
+────────────────────────────────────────────────────────
+9. SELECT STATEMENT
+────────────────────────────────────────────────────────
+Select multiplexes multiple channel operations.
+
+Example:
+  select {
+      msg1 <- ch1 => print(msg1),
+      msg2 <- ch2 => print(msg2),
+      default => print("No message")
+  }
+
+Implementation:
+  - Poll all cases at once
+  - If multiple ready, pick randomly (prevents bias)
+  - If none ready, block current goroutine
+  - `default` case executes if no channel ready
+
+────────────────────────────────────────────────────────
+10. SYNCHRONIZATION PRIMITIVES
+────────────────────────────────────────────────────────
+Planned:
+  - mutex<T>          : mutual exclusion
+  - rwlock<T>         : read-write lock
+  - condvar           : condition variable
+  - waitgroup         : wait for multiple goroutines
+  - once              : execute function once
+  - atomic<T>         : atomic operations
+
+Example (planned):
+  fn main() {
+      let mu: mutex<int> = mutex(0);
+      let wg: waitgroup = waitgroup();
+
+      spawn fn() {
+          mu.lock();
+          // critical section
+          mu.unlock();
+          wg.done();
+      };
+
+      wg.wait();
+  }
+
+────────────────────────────────────────────────────────
+11. MEMORY MODEL
+────────────────────────────────────────────────────────
+Happens-before relationship:
+  - Channel send happens-before channel receive
+  - Lock happens-before unlock
+  - Goroutine spawn happens-before first statement
+
+No data races:
+  - Compiler/runtime prevents unsynchronized access
+  - Race detector (optional, like Go -race)
+
+────────────────────────────────────────────────────────
+12. PERFORMANCE TARGETS
+────────────────────────────────────────────────────────
+Metric                    | Target
+--------------------------|--------------------------
+Coroutine creation        | < 1μs
+Context switch (G→G)      | < 500ns
+Context switch (G→M)      | < 1μs
+Channel send (unbuffered) | < 100ns (receiver ready)
+Channel send (buffered)   | < 50ns (no blocking)
+Channel recv (unbuffered) | < 100ns (sender ready)
+Channel recv (buffered)   | < 50ns (no blocking)
+Memory per coroutine      | 2KB initial
+Max coroutines            | 1M+ (theoretical)
+Work steal latency        | < 200ns
+
+────────────────────────────────────────────────────────
+13. EXAMPLE PATTERNS
+────────────────────────────────────────────────────────
+Worker pool:
+  fn worker(id: int, jobs: chan<int>, results: chan<int>) {
+      for job in jobs {
+          let result: int = process(job);
+          results <- result;
+      }
+  }
+
+  fn main() {
+      let jobs: chan<int> = make(chan<int>, 100);
+      let results: chan<int> = make(chan<int>, 100);
+
+      for i in 0..3 {
+          spawn worker(i, jobs, results);
+      }
+
+      for i in 0..10 {
+          jobs <- i;
+      }
+      close(jobs);
+
+      for i in 0..10 {
+          print(<-results);
+      }
+  }
+
+Fan-out / Fan-in:
+  fn producer(out: chan<int>) {
+      for i in 0..100 {
+          out <- i;
+      }
+      close(out);
+  }
+
+  fn consumer(in: chan<int>, name: string) {
+      for val in in {
+          print(f"{name}: {val}");
+      }
+  }
+
+  fn main() {
+      let ch: chan<int> = make(chan<int>, 10);
+      spawn producer(ch);
+      spawn consumer(ch, "A");
+      spawn consumer(ch, "B");
+  }
+
+────────────────────────────────────────────────────────
+14. IMPLEMENTATION NOTES
+────────────────────────────────────────────────────────
+Runtime language: C (for v0.1, with GCC backend)
+Thread model: pthreads (POSIX threads)
+Scheduler: M:N with work stealing
+Stack: Segmented, like Go
+Channels: Mutex + condition variable (v0.1), lock-free later
+
+Dependencies:
+  - pthread library (for OS threads)
+  - No external runtime dependencies
+
+────────────────────────────────────────────────────────
+15. COMPARISON WITH GO
+────────────────────────────────────────────────────────
+Aspect              | Go              | Garurda
+--------------------|-----------------|------------------
+Coroutine keyword   | go              | spawn
+Channel syntax      | chan T          | chan<T>
+Channel creation    | make(chan T)    | make(chan<T>)
+Select syntax       | select { ... } | select { ... }
+Initial stack       | 2KB             | 2KB
+Scheduler model     | GMP             | Simplified GMP
+Context switch      | ~200ns          | < 500ns (target)
+Preemption          | Yes (since Go1.14) | Yes
+Race detector       | -race flag      | Planned
+
+────────────────────────────────────────────────────────
+END OF CONCURRENCY DESIGN

@@ -1,0 +1,4 @@
+// Factorial example - simplified
+fn main() {
+    print("Hello from GarudaLang!\n");
+}

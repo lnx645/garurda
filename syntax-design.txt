@@ -1,0 +1,350 @@
+GARURDA — Syntax Design v0.1
+==============================
+Classic C-Family Style + Strict Typing
+Last updated: 2026-10-09
+
+────────────────────────────────────────────────────────
+1. PHILOSOPHY
+────────────────────────────────────────────────────────
+Garurda is a simple, fast, statically-typed, compiled language
+with built-in concurrency.
+
+It takes inspiration from Go's simplicity, but chooses
+"simplicity by design" instead of "simplicity by omission":
+features that reduce boilerplate are included, as long as they
+remain explicit and easy to understand.
+
+Target: native machine code (ELF x86-64), compile fast,
+bootstrapable.
+
+────────────────────────────────────────────────────────
+2. FILE & ENTRYPOINT
+────────────────────────────────────────────────────────
+Extension : .ga
+Encoding  : UTF-8
+Entrypoint: fn main() { ... }
+           main must exist, take no arguments, return void.
+
+Example:
+  // hello.ga
+  fn main() {
+      print("Hello, Garurda!\n")
+  }
+
+────────────────────────────────────────────────────────
+3. STRICT TYPING
+────────────────────────────────────────────────────────
+All variables MUST have an explicit type annotation.
+Type inference is NOT allowed.
+
+  let name: string = "Garurda"
+  let age:  int    = 18
+  const PI: float64 = 3.14
+
+Attempting to omit the type is a compile error:
+  let x = 5        // ERROR: type annotation required
+
+────────────────────────────────────────────────────────
+4. SEMICOLONS
+────────────────────────────────────────────────────────
+Semicolons are REQUIRED at the end of every statement.
+No implicit semicolon insertion.
+
+  let x: int = 5;
+  print(x);
+  return 42;
+
+────────────────────────────────────────────────────────
+5. KEYWORDS
+────────────────────────────────────────────────────────
+fn     let   const   if   else   for   while   return
+match  enum  struct  impl interface
+true   false  print  some  none  option
+
+Reserved for future:  or  and  not  break  continue
+
+────────────────────────────────────────────────────────
+6. TYPES
+────────────────────────────────────────────────────────
+Primitive:
+  int       — 64-bit signed integer
+  float64   — 64-bit floating point
+  bool      — true / false
+  string    — immutable UTF-8 text
+
+Composite (planned, not in v0.1):
+  array[T]  — fixed-size array
+  slice[T]  — dynamic array
+  map[K, V] — hash map
+  struct    — product type
+  enum      — sum type
+  Option[T] — optional value (replaces nil)
+
+────────────────────────────────────────────────────────
+7. VARIABLE DECLARATION
+────────────────────────────────────────────────────────
+let  — mutable binding
+const — immutable binding (compile-time constant)
+
+  let count: int = 10;
+  const MAX: int = 100;
+  let name: string = "Garurda";
+
+────────────────────────────────────────────────────────
+8. FUNCTIONS
+────────────────────────────────────────────────────────
+Declaration:
+  fn name(param1: Type, param2: Type) -> ReturnType {
+      // body
+      return value;
+  }
+
+Void function (no return):
+  fn greet(name: string) {
+      print("Hello, " + name + "\n");
+  }
+
+Multiple return values:
+  fn divmod(a: int, b: int) -> (int, int) {
+      return a / b, a % b;
+  }
+
+Optional return:
+  fn findUser(id: int) -> Option<User> {
+      if id == 1 {
+          return Some(User { id: 1, name: "Garurda" });
+      }
+      return None;
+  }
+
+Call:
+  let q: int;
+  let r: int;
+  q, r = divmod(10, 3);
+
+────────────────────────────────────────────────────────
+9. CONTROL FLOW
+────────────────────────────────────────────────────────
+if / else if / else:
+  if age >= 17 {
+      print("Adult");
+  } else if age >= 13 {
+      print("Teen");
+  } else {
+      print("Child");
+  }
+
+for loop (range-based):
+  for i in 0..10 {
+      print(i);
+  }
+
+while loop:
+  while active {
+      print("running...");
+  }
+
+break / continue:
+  for i in 0..100 {
+      if i == 50 {
+          break;
+      }
+      if i % 2 == 0 {
+          continue;
+      }
+      print(i);
+  }
+
+────────────────────────────────────────────────────────
+10. OPERATORS
+────────────────────────────────────────────────────────
+Arithmetic:    +   -   *   /   %
+Comparison:    ==  !=  <   >   <=  >=
+Logical:       and  or  not
+Assignment:    =   +=  -=  *=  /=
+
+Note: 'and', 'or', 'not' are used instead of &&, ||, !
+
+────────────────────────────────────────────────────────
+11. BUILTIN FUNCTIONS (v0.1)
+────────────────────────────────────────────────────────
+print(value: any)  — writes to stdout
+len(s: string)     — returns length of string
+
+────────────────────────────────────────────────────────
+12. STRING INTERPOLATION (planned)
+────────────────────────────────────────────────────────
+Instead of concatenation or fmt.Sprintf:
+
+  let name: string = "Garurda";
+  print(f"Hello, {name}!");
+
+────────────────────────────────────────────────────────
+13. DEFAULT PARAMETERS (planned)
+────────────────────────────────────────────────────────
+Functions can have default values for trailing parameters:
+
+  fn greet(name: string, greeting: string = "Hello") {
+      print(f"{greeting}, {name}!");
+  }
+
+  greet("Garurda");           // "Hello, Garurda!"
+  greet("Garurda", "Hai");    // "Hai, Garurda!"
+
+────────────────────────────────────────────────────────
+14. OPTION TYPE (planned — replaces nil)
+────────────────────────────────────────────────────────
+Go has nil, which can be assigned to any pointer/interface type.
+Garurda removes nil entirely and uses Option<T>:
+
+  fn findUser(id: int) -> Option<User> {
+      if id == 1 {
+          return Some(User { id: 1, name: "Garurda" });
+      }
+      return None;
+  }
+
+  let user = findUser(42);
+  match user {
+      Some(u) => print(u.name),
+      None    => print("Not found")
+  }
+
+Benefits:
+  - No null pointer exceptions
+  - Compiler forces handling of "no value" case
+  - Clear intent in API signatures
+
+────────────────────────────────────────────────────────
+15. RESULT TYPE (planned — error handling)
+────────────────────────────────────────────────────────
+Instead of Go-style (value, error), use Result<T, E>:
+
+  fn readFile(path: string) -> Result<string, Error> {
+      // ...
+  }
+
+  let content = readFile("data.txt");
+  match content {
+      Ok(text) => print(text),
+      Err(e) => print(f"Error: {e}")
+  }
+
+Benefits:
+  - Compiler enforces error handling
+  - Cannot accidentally ignore errors
+  - Exhaustive pattern matching
+
+────────────────────────────────────────────────────────
+16. ENUM & PATTERN MATCHING (planned)
+────────────────────────────────────────────────────────
+enum Color { Red, Green, Blue }
+
+fn colorName(c: Color) -> string {
+    match c {
+        Red   => "Red",
+        Green => "Green",
+        Blue  => "Blue"
+    }
+}
+
+match is exhaustive: compiler errors if not all cases handled.
+
+────────────────────────────────────────────────────────
+17. INTERFACES (planned — nominal typing)
+────────────────────────────────────────────────────────
+Go uses structural typing (implicit):
+  type Writer interface { Write([]byte) (int, error) }
+
+Garurda uses nominal typing (explicit):
+  interface Writer {
+      write(data: []byte) -> (int, Error)
+  }
+
+  struct MyWriter { ... }
+  impl Writer for MyWriter {
+      write(data: []byte) -> (int, Error) { ... }
+  }
+
+Benefits:
+  - Explicit implementation declaration
+  - Clearer error messages
+  - Easier to reason about in large codebases
+
+────────────────────────────────────────────────────────
+18. FULL EXAMPLE (v0.1 target)
+────────────────────────────────────────────────────────
+// factorial.ga
+
+fn factorial(n: int) -> int {
+    if n <= 1 {
+        return 1;
+    }
+    return n * factorial(n - 1);
+}
+
+fn main() {
+    let n: int = 5;
+    print("Factorial: ");
+    print(factorial(n));
+    print("\n");
+}
+
+Expected output:
+  Factorial: 120
+
+────────────────────────────────────────────────────────
+19. DESIGN GOALS vs GO COMPARISON
+────────────────────────────────────────────────────────
+Feature              | Go        | Garurda v0.1
+---------------------|-----------|------------------
+Function keyword     | func      | fn
+Type inference       | Loose     | Strict (explicit)
+Semicolons           | Implicit  | Explicit
+Interfaces           | Structural| Nominal
+Error handling       | (val,err) | Result<T,E>
+Nil                  | Yes       | No (Option<T>)
+Enum                 | iota      | enum + match
+String interpolation | fmt.Sprintf | f"..." builtin
+Default params       | No        | Yes
+Pattern matching     | switch    | match (exhaustive)
+Keywords             | English   | English
+Concurrency          | goroutine | (planned v0.2)
+
+────────────────────────────────────────────────────────
+20. IMPLEMENTATION ROADMAP
+────────────────────────────────────────────────────────
+Phase 1: Lexer + Parser + AST
+  - Tokenizer for .ga files
+  - Recursive descent parser
+  - AST node definitions
+  - Output: AST dump for verification
+
+Phase 2: Type Checker
+  - Strict type annotation enforcement
+  - Type compatibility checks
+  - Pretty error messages (line:col)
+
+Phase 3: C Transpiler Backend
+  - Walk AST, generate C code
+  - Spawn gcc to compile to native binary
+  - Verify Hello World runs
+
+Phase 4: CLI Tool
+  - garurda run file.ga
+  - garurda build file.ga -o out
+  - Basic REPL
+
+Phase 5: Stdlib + Advanced Features
+  - String operations
+  - Option<T>, Result<T,E>
+  - Enum, match
+  - Interfaces
+
+Phase 6: Native Codegen (ELF x86-64)
+  - Direct machine code emission
+  - Remove GCC dependency
+  - Self-hosting / bootstrapping
+
+────────────────────────────────────────────────────────
+END OF DESIGN DOCUMENT
