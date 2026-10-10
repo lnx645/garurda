@@ -19,6 +19,7 @@ SRCS = $(SRCDIR)/main.c \
        $(SRCDIR)/ast.c \
        $(SRCDIR)/lexer.c \
        $(SRCDIR)/parser.c \
+       $(SRCDIR)/resolver.c \
        $(SRCDIR)/checker.c \
        $(SRCDIR)/codegen.c \
        $(SRCDIR)/runtime.c

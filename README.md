@@ -1,41 +1,41 @@
 # GarudaLang (GaLang)
 
-Bahasa pemrograman baru yang sederhana, cepat, dan konkuren.
+Bahasa pemrograman statically-typed yang dikompilasi ke kode native x86-64.
 
 ## Fitur
 
-- **Strict Typing**: Semua variable harus punya type annotation eksplisit
-- **Native Codegen**: Compile ke ELF64 x86-64 langsung
-- **CLI Tool**: `gar build`, `gar run`, `gar check`
-- **Modern Syntax**: `fn`, `let`, `match`, `Option<T>`
-- **Cross-platform**: Build untuk Linux, macOS, Windows via GitHub Actions
+- **Strict typing** — setiap variabel wajib punya anotasi tipe eksplisit
+- **Native codegen** — menghasilkan assembly x86-64, lalu ELF64 lewat `as`/`ld`
+- **Modul** — `import` dengan resolusi path, deduplikasi, dan deteksi siklus
+- **CLI** — `gar build`, `gar run`, `gar check`
 
 ## Quick Start
 
 ```bash
-# Build
-gar build hello.ga
+make          # build ./bin/gar
+make test     # jalankan test suite
+make asmv FILE=testdata/loop.ga   # lihat assembly yang dihasilkan
+```
 
-# Run
-gar run hello.ga
-
-# Type check only
-gar check hello.ga
-
-# Format code
-gar fmt hello.ga
+```bash
+gar build hello.ga       # compile
+gar run hello.ga         # compile lalu jalankan
+gar check hello.ga       # type check saja
+GAR_VERBOSE=1 gar build hello.ga   # tampilkan modul yang dimuat
 ```
 
 ## Contoh Program
 
-### Hello World (`hello.ga`)
+### Hello World
+
 ```ga
 fn main() {
     print("Hello, Garurda!\n");
 }
 ```
 
-### Factorial (`factorial.ga`)
+### Fungsi, rekursi, loop
+
 ```ga
 fn factorial(n: int) -> int {
     if n <= 1 {
@@ -45,39 +45,77 @@ fn factorial(n: int) -> int {
 }
 
 fn main() {
-    let n: int = 5;
-    print("Factorial: ");
-    print(factorial(n));
-    print("\n");
+    for i in 1..6 {
+        print(factorial(i));
+        print("\n");
+    }
 }
 ```
+
+### Modul
+
+`main.ga`
+
+```ga
+import "std/math.ga";
+
+fn main() {
+    print(add(2, 3));
+}
+```
+
+`std/math.ga`
+
+```ga
+fn add(a: int, b: int) -> int {
+    return a + b;
+}
+```
+
+Path di-resolve relatif terhadap direktori file peng-import terlebih dahulu,
+lalu relatif terhadap direktori file entry.
 
 ## Struktur Project
 
 ```
 garurda/
-├── src/              # Source code compiler
+├── src/
 │   ├── main.c        # CLI driver
 │   ├── lexer.c       # Tokenizer
 │   ├── parser.c      # Recursive descent parser
+│   ├── resolver.c    # Module resolver (import graph)
 │   ├── checker.c     # Type checker
-│   ├── codegen.c     # Native code generator
+│   ├── codegen.c     # x86-64 code generator
 │   └── runtime.c     # Runtime library
-├── include/          # Header files
-├── testdata/         # Test fixtures
+├── include/
+├── testdata/         # Fixtures + .expected hasil yang harus dicocokkan
+├── run_tests.sh      # Test runner
 └── Makefile
+```
+
+## Pipeline
+
+```
+.ga  ->  Lexer -> Parser -> Module Resolver -> Type Checker
+     ->  Codegen (x86-64 asm) -> as -> ld -> ELF64
 ```
 
 ## Status
 
-v0.1 - Initial release with:
-- [x] Lexer
-- [x] Parser
-- [x] Type Checker
-- [x] Code Generator (x86-64 ELF)
-- [ ] Goroutine/Channel (planned)
-- [ ] Multi-platform support (planned)
-- [ ] GC + Escape Analysis (planned)
+v0.2
+
+- [x] Lexer, parser, type checker
+- [x] `if` / `while` / `for`, fungsi, rekursi, assignment
+- [x] Codegen x86-64 (int, bool, string, perbandingan, aritmetika)
+- [x] Modul: `import`, deduplikasi, deteksi siklus, deteksi duplikat
+- [x] Test suite + ASAN/UBSAN bersih
+- [ ] `float64` di codegen (sekarang dipotong ke integer)
+- [ ] Operator logika `and` / `or` (parser belum memproduksinya)
+- [ ] `match` + `enum`, `struct`, `impl`, `interface`
+- [ ] `Option<T>` / `Result<T, E>`
+- [ ] GASM sendiri (saat ini `as`/`ld`) dan GLINK
+- [ ] Incremental compilation
+- [ ] Backend Windows
 
 ## Lisensi
 

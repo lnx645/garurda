@@ -58,10 +58,12 @@ for src in "$DATA"/*.ga; do
 done
 
 # Negative tests: each *.bad.ga MUST be rejected by the compiler.
-for src in "$DATA"/*.bad.ga; do
+for src in "$DATA"/*.bad.ga "$DATA"/neg/*.bad.ga; do
     [ -e "$src" ] || continue
 
     name=$(basename "$src" .bad.ga)
+    dir=$(dirname "$src")
+
     if "$GAR" check "$src" >/tmp/gar_check.log 2>&1; then
         red "FAIL (should be rejected) $name"
         fail=$((fail + 1))
@@ -70,6 +72,34 @@ for src in "$DATA"/*.bad.ga; do
         pass=$((pass + 1))
     fi
 done
+
+# Multi-module scenarios that cannot be expressed as a single .ga file.
+echo
+echo "-- modules --"
+
+# An import cycle must be reported, not hang and not silently pass.
+if timeout 10 "$GAR" check "$DATA/neg/cycle_a.ga" >/tmp/gar_cycle.log 2>&1; then
+    red "FAIL (circular import accepted)"
+    fail=$((fail + 1))
+else
+    rc=$?
+    if [ "$rc" -eq 124 ]; then
+        red "FAIL (hung) import cycle"
+        fail=$((fail + 1))
+    else
+        green "ok   import cycle rejected: $(head -1 /tmp/gar_cycle.log)"
+        pass=$((pass + 1))
+    fi
+fi
+
+# A module reachable through two paths must be emitted exactly once.
+if GAR_VERBOSE=1 "$GAR" check "$DATA/modules.ga" 2>&1 | grep -q "already loaded"; then
+    green "ok   diamond import deduplicated"
+    pass=$((pass + 1))
+else
+    red "FAIL (diamond import not deduplicated)"
+    fail=$((fail + 1))
+fi
 
 echo
 echo "passed: $pass  failed: $fail"

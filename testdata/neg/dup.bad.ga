@@ -1,0 +1,6 @@
+import "dup_a.ga";
+import "dup_b.ga";
+
+fn main() {
+    print(collide());
+}

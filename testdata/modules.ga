@@ -1,0 +1,16 @@
+import "std/math.ga";
+import "std/greet.ga";
+
+fn main() {
+    print(add(2, 3));
+    print("|");
+    print(mul(4, 5));
+    print("|");
+    print(area(6));
+    print("|");
+    print(square(3));
+    print("|");
+    print(add(add(1, 2), 10));
+    print("|");
+    print("\n");
+}

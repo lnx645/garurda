@@ -37,6 +37,7 @@ typedef struct ASTInterface ASTInterface;
 typedef struct ASTSome ASTSome;
 typedef struct ASTNone ASTNone;
 typedef struct ASTPrint ASTPrint;
+typedef struct ASTImport ASTImport;
 
 // ============================================================
 // AST Node (base)
@@ -285,6 +286,20 @@ struct ASTPrint {
     ASTNode** args;
     int arg_count;
     int arg_capacity;
+};
+
+// ============================================================
+// Import statement
+//
+// `path` is the raw text from the source, e.g. "std/net.ga". The
+// resolver turns it into a filesystem path and records which module
+// the statement resolved to.
+// ============================================================
+struct ASTImport {
+    ASTNode base;
+    char* path;          // as written in the source
+    char* resolved;      // absolute path, filled in by the resolver
+    char* alias;         // optional `as` name; NULL when absent
 };
 
 // ============================================================

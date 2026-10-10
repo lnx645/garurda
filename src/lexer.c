@@ -117,10 +117,13 @@ static Token* read_string(Lexer* lexer) {
     value[len] = '\0';
     
     if (lexer->current_char == '"') {
-        lexer_advance(lexer); // skip closing "
+        lexer_advance(lexer);   // skip closing "
     }
-    
-    return token_new(TOKEN_STRING, value, start_line, start_col);
+
+    // token_new() copies the text, so the scratch buffer must go.
+    Token* t = token_new(TOKEN_STRING, value, start_line, start_col);
+    free(value);
+    return t;
 }
 
 // ============================================================
@@ -159,7 +162,9 @@ static Token* read_number(Lexer* lexer) {
     }
     
     TokenType type = is_float ? TOKEN_FLOAT : TOKEN_INT;
-    return token_new(type, num_str, start_line, start_col);
+    Token* t = token_new(type, num_str, start_line, start_col);
+    free(num_str);
+    return t;
 }
 
 // ============================================================
@@ -206,6 +211,8 @@ static Token* read_identifier(Lexer* lexer) {
     else if (strcmp(ident, "none") == 0) type = TOKEN_NONE;
     else if (strcmp(ident, "option") == 0) type = TOKEN_OPTION;
     else if (strcmp(ident, "print") == 0) type = TOKEN_PRINT;
+    else if (strcmp(ident, "import") == 0) type = TOKEN_IMPORT;
+    else if (strcmp(ident, "pub") == 0) type = TOKEN_PUB;
     else if (strcmp(ident, "and") == 0) type = TOKEN_AND;
     else if (strcmp(ident, "or") == 0) type = TOKEN_OR;
     else if (strcmp(ident, "not") == 0) type = TOKEN_NOT;
@@ -214,7 +221,10 @@ static Token* read_identifier(Lexer* lexer) {
     else if (strcmp(ident, "bool") == 0) type = TOKEN_BOOL_TYPE;
     else if (strcmp(ident, "string") == 0) type = TOKEN_STRING_TYPE;
     
-    return token_new(type, ident, start_line, start_col);
+    // token_new() copies the identifier, so drop the scratch copy.
+    Token* t = token_new(type, ident, start_line, start_col);
+    free(ident);
+    return t;
 }
 
 // ============================================================
@@ -371,6 +381,18 @@ Token** lexer_tokenize(const char* source, int* token_count, Error* error) {
     
     lexer_free(lexer);
     return tokens;
+}
+
+// ============================================================
+// Free a token array returned by lexer_tokenize.
+//
+// `count` is the number of real tokens; lexer_tokenize() stores a
+// terminating EOF token at index `count`, so it has to be released too.
+// ============================================================
+void lexer_tokens_free(Token** tokens, int count) {
+    if (!tokens) return;
+    for (int i = 0; i <= count; i++) token_free(tokens[i]);
+    free(tokens);
 }
 
 // ============================================================

@@ -284,6 +284,14 @@ void ast_free(ASTNode* node) {
             free(p);
             break;
         }
+        case AST_IMPORT: {
+            ASTImport* imp = (ASTImport*)node;
+            free(imp->path);
+            free(imp->resolved);
+            free(imp->alias);
+            free(imp);
+            break;
+        }
         default:
             assert(0 && "Unknown AST node type");
     }

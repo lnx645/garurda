@@ -75,6 +75,8 @@ typedef enum {
     TOKEN_NONE,
     TOKEN_OPTION,
     TOKEN_PRINT,
+    TOKEN_IMPORT,
+    TOKEN_PUB,
     
     // Types
     TOKEN_INT_TYPE,
@@ -166,7 +168,8 @@ typedef enum {
     AST_NONE,
     AST_OPTION_TYPE,
     AST_RESULT_TYPE,
-    AST_PRINT
+    AST_PRINT,
+    AST_IMPORT
 } ASTNodeType;
 
 // Forward declarations

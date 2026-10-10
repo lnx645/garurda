@@ -1,0 +1,5 @@
+import
+
+fn main() {
+    print(1)
+}

@@ -1,0 +1,10 @@
+import "cycle_b.ga";
+
+fn helper_a() -> int {
+    return 1;
+}
+
+fn main() {
+    print(helper_a());
+    print("\n");
+}

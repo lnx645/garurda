@@ -147,6 +147,8 @@ static ASTNode* parse_function(Parser* parser) {
         ASTType* param_type = parse_type(parser);
         fn->params[fn->param_count++] = ast_param_new(param_name, 
                                                         param_type ? param_type->name : NULL);
+        // ast_param_new() makes its own copy of the type name.
+        ast_free((ASTNode*)param_type);
         free(param_name);
         
         if (!parser_match(parser, TOKEN_COMMA)) {
@@ -580,7 +582,48 @@ static ASTNode* parse_primary(Parser* parser) {
 // ============================================================
 // Parse statement
 // ============================================================
+// ============================================================
+// Parse import statement
+//
+//   import "std/math.ga";
+//   import "std/math.ga" as math;
+//
+// Imports are only valid at the top level; the resolver rejects them
+// anywhere else.
+// ============================================================
+static ASTNode* parse_import(Parser* parser) {
+    parser_advance(parser);   // 'import'
+
+    ASTImport* imp = calloc(1, sizeof(ASTImport));
+    imp->base.type = AST_IMPORT;
+
+    if (!parser_consume(parser, TOKEN_STRING, "Expected a quoted path after 'import'", &parser->error)) {
+        free(imp);
+        return NULL;
+    }
+    imp->path = strdup(parser_previous(parser)->value);
+
+    // Optional alias.
+    if (parser_check(parser, TOKEN_IDENT) &&
+        strcmp(parser_current(parser)->value, "as") == 0) {
+        parser_advance(parser);
+        parser_consume(parser, TOKEN_IDENT, "Expected a name after 'as'", &parser->error);
+        imp->alias = strdup(parser_previous(parser)->value);
+    }
+
+    parser_consume(parser, TOKEN_SEMICOLON, "Expected ';' after import", &parser->error);
+
+    return (ASTNode*)imp;
+}
+
+// ============================================================
+// Parse statement
+// ============================================================
 static ASTNode* parse_statement(Parser* parser) {
+    if (parser_check(parser, TOKEN_IMPORT)) {
+        return parse_import(parser);
+    }
+
     if (parser_check(parser, TOKEN_FN)) {
         parser_advance(parser);
         return parse_function(parser);

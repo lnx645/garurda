@@ -1,0 +1,3 @@
+fn collide() -> int {
+    return 1;
+}

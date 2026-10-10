@@ -35,4 +35,8 @@ const char* token_type_str(TokenType type);
 // ============================================================
 void token_free(Token* token);
 
+// Frees a token array from lexer_tokenize(), including the trailing
+// EOF token it stores at index `count`.
+void lexer_tokens_free(Token** tokens, int count);
+
 #endif // LEXER_H

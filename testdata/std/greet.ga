@@ -1,0 +1,11 @@
+// A module that depends on another module.
+
+import "std/math.ga";
+
+fn area(side: int) -> int {
+    return square(side);
+}
+
+fn banner() -> string {
+    return "ga";
+}

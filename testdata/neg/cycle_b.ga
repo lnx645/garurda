@@ -1,0 +1,5 @@
+import "cycle_a.ga";
+
+fn helper_b() -> int {
+    return 2;
+}

@@ -119,6 +119,8 @@ static FnSig* sigs = NULL;
 static int sig_count = 0;
 static int sig_capacity = 0;
 
+static const FnSig* sig_lookup(const char* name);
+
 static void sigs_free(void) {
     for (int i = 0; i < sig_count; i++) {
         free(sigs[i].name);
@@ -130,9 +132,16 @@ static void sigs_free(void) {
     sig_capacity = 0;
 }
 
-static void sigs_collect(ASTNode* node) {
-    if (!node || node->type != AST_FUNCTION) return;
+// Adds one signature. Returns false if the name is already taken.
+static bool sigs_collect(ASTNode* node) {
+    if (!node || node->type != AST_FUNCTION) return true;
     ASTFunction* fn = (ASTFunction*)node;
+
+    // The flattened program can pull in the same module twice (diamond
+    // import) or two modules that happen to define the same name. Either
+    // way there is only one symbol-table slot for it, so catch it here
+    // instead of letting sig_lookup() silently return the first match.
+    if (sig_lookup(fn->name)) return false;
 
     if (sig_count >= sig_capacity) {
         sig_capacity = sig_capacity == 0 ? 16 : sig_capacity * 2;
@@ -143,6 +152,7 @@ static void sigs_collect(ASTNode* node) {
         strdup(fn->return_type ? fn->return_type->name : "void");
     sigs[sig_count].arity = fn->param_count;
     sig_count++;
+    return true;
 }
 
 static const FnSig* sig_lookup(const char* name) {
@@ -476,6 +486,10 @@ static void check_stmt(ASTNode* node, Error* error) {
             break;
         }
         
+        case AST_IMPORT:
+            // Resolved by the resolver; nothing left to check here.
+            break;
+
         default:
             // For other nodes, just check sub-expressions if any
             break;
@@ -489,12 +503,22 @@ bool checker_check(ASTProgram* program, Error* error) {
     env_init();
     bool result = true;
 
-    // Collect every function signature before checking any body, so calls can
-    // be resolved regardless of declaration order.
+    // Collect every function signature before checking any body, so calls
+    // can be resolved regardless of declaration order.
     for (int i = 0; i < program->statement_count; i++) {
-        sigs_collect(program->statements[i]);
+        if (!sigs_collect(program->statements[i])) {
+            ASTNode* dup = program->statements[i];
+            snprintf(error->message, sizeof(error->message),
+                     "Duplicate definition of '%s' "
+                     "(two modules export the same name)",
+                     ((ASTFunction*)dup)->name);
+            error->has_error = true;
+            env_free();
+            sigs_free();
+            return false;
+        }
     }
-    
+
     // Check if main exists
     bool has_main = false;
     for (int i = 0; i < program->statement_count; i++) {
