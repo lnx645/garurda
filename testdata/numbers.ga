@@ -1,0 +1,32 @@
+fn main() {
+    let acc: int = 0;
+    for i in 1..5 {
+        acc = acc + i;
+    }
+    print(acc);
+    print("|");
+
+    // Division and remainder, including negative operands.
+    print(7 / 2);
+    print(",");
+    print(7 % 2);
+    print(",");
+    print(-7 / 2);
+    print(",");
+    print(-7 % 2);
+    print(",");
+
+    // Unary minus and double negation.
+    print(-5);
+    print(",");
+    print(- -5);
+    print(",");
+
+    // Large value, to catch digit-ordering bugs in int formatting.
+    print(1000000);
+    print(",");
+    print(0);
+    print(",");
+    print(-1);
+    print("\n");
+}

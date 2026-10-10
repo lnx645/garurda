@@ -1,6 +1,6 @@
 // ============================================================
 // Parser implementation for GarudaLang
-// Recursive descent parser
+// Recursive descent parser with operator precedence
 // Author: GalangTeam
 // ============================================================
 
@@ -62,12 +62,17 @@ static bool parser_consume(Parser* parser, TokenType type,
 // ============================================================
 static ASTNode* parse_statement(Parser* parser);
 static ASTNode* parse_expression(Parser* parser);
+static ASTNode* parse_assignment_expr(Parser* parser);
+static ASTNode* parse_comparison_expr(Parser* parser);
+static ASTNode* parse_additive_expr(Parser* parser);
+static ASTNode* parse_multiplicative_expr(Parser* parser);
 static ASTNode* parse_primary(Parser* parser);
+static ASTNode* parse_unary(Parser* parser);
 static ASTBlock* parse_block(Parser* parser);
 static ASTType* parse_type(Parser* parser);
 
 // ============================================================
-// Parse type (e.g., int, string)
+// Parse type
 // ============================================================
 static ASTType* parse_type(Parser* parser) {
     Token* token = parser_current(parser);
@@ -121,8 +126,7 @@ static ASTNode* parse_function(Parser* parser) {
     ASTFunction* fn = calloc(1, sizeof(ASTFunction));
     fn->base.type = AST_FUNCTION;
     
-    // fn keyword already consumed by caller
-    // Function name
+    // fn already consumed
     parser_consume(parser, TOKEN_IDENT, "Expected function name", &parser->error);
     fn->name = strdup(parser_previous(parser)->value);
     
@@ -138,8 +142,7 @@ static ASTNode* parse_function(Parser* parser) {
         parser_consume(parser, TOKEN_IDENT, "Expected parameter name", &parser->error);
         char* param_name = strdup(parser_previous(parser)->value);
         
-        parser_consume(parser, TOKEN_COLON, "Expected ':' after parameter name", 
-                      &parser->error);
+        parser_consume(parser, TOKEN_COLON, "Expected ':' after parameter name", &parser->error);
         
         ASTType* param_type = parse_type(parser);
         fn->params[fn->param_count++] = ast_param_new(param_name, 
@@ -174,21 +177,18 @@ static ASTNode* parse_let(Parser* parser, bool is_const) {
                              : (ASTNode*)calloc(1, sizeof(ASTLet));
     node->type = is_const ? AST_CONST : AST_LET;
     
-    // Token already consumed by caller
+    // Token already consumed by parse_statement
     
-    // Variable name
     parser_consume(parser, TOKEN_IDENT, "Expected variable name", &parser->error);
     char* name = strdup(parser_previous(parser)->value);
     
-    // Type annotation
     ASTType* type = NULL;
     if (parser_match(parser, TOKEN_COLON)) {
         type = parse_type(parser);
     }
     
-    // Value
     parser_consume(parser, TOKEN_EQ, "Expected '=' in declaration", &parser->error);
-    ASTNode* value = parse_expression(parser);
+    ASTNode* value = parse_assignment_expr(parser);
     parser_consume(parser, TOKEN_SEMICOLON, "Expected ';'", &parser->error);
     
     if (is_const) {
@@ -215,16 +215,13 @@ static ASTNode* parse_if(Parser* parser) {
     
     // if already consumed
     
-    // Condition
-    iff->condition = parse_expression(parser);
+    iff->condition = parse_assignment_expr(parser);
     
-    // Then branch
     iff->then_branch = parse_block(parser);
     
-    // Else branch (optional)
     if (parser_match(parser, TOKEN_ELSE)) {
         if (parser_check(parser, TOKEN_IF)) {
-            // else if
+            parser_advance(parser);
             ASTNode* else_if = parse_if(parser);
             ASTBlock* block = ast_block_new();
             ast_block_add(block, else_if);
@@ -238,21 +235,6 @@ static ASTNode* parse_if(Parser* parser) {
 }
 
 // ============================================================
-// Parse return statement
-// ============================================================
-static ASTNode* parse_return(Parser* parser) {
-    ASTReturn* ret = calloc(1, sizeof(ASTReturn));
-    ret->base.type = AST_RETURN;
-    
-    if (!parser_check(parser, TOKEN_SEMICOLON)) {
-        ret->value = parse_expression(parser);
-    }
-    
-    parser_consume(parser, TOKEN_SEMICOLON, "Expected ';'", &parser->error);
-    return (ASTNode*)ret;
-}
-
-// ============================================================
 // Parse for loop
 // ============================================================
 static ASTNode* parse_for(Parser* parser) {
@@ -261,25 +243,26 @@ static ASTNode* parse_for(Parser* parser) {
     
     // for already consumed
     
-    // Variable name
     parser_consume(parser, TOKEN_IDENT, "Expected variable name", &parser->error);
     f->var_name = strdup(parser_previous(parser)->value);
     
-    // "in"
-    if (!parser_match(parser, TOKEN_IDENT) || 
-        strcmp(parser_previous(parser)->value, "in") != 0) {
+    // "in" keyword
+    parser_consume(parser, TOKEN_IDENT, "Expected 'in'", &parser->error);
+    
+    // Range start
+    f->start = parse_assignment_expr(parser);
+    
+    // ".." operator
+    if (!parser_match(parser, TOKEN_DOTDOT)) {
         snprintf(parser->error.message, sizeof(parser->error.message),
-                 "Expected 'in' in for loop at line %d:%d",
+                 "Expected '..' in for loop at line %d:%d",
                  parser->error.line, parser->error.column);
         parser->error.has_error = true;
     }
     
-    // Range: 0..10
-    f->start = parse_expression(parser);
-    parser_consume(parser, TOKEN_DOTDOT, "Expected '..' in range", &parser->error);
-    f->end = parse_expression(parser);
+    // Range end
+    f->end = parse_assignment_expr(parser);
     
-    // Body
     f->body = parse_block(parser);
     
     return (ASTNode*)f;
@@ -292,94 +275,204 @@ static ASTNode* parse_while(Parser* parser) {
     ASTWhile* w = calloc(1, sizeof(ASTWhile));
     w->base.type = AST_WHILE;
     
-    w->condition = parse_expression(parser);
+    w->condition = parse_assignment_expr(parser);
     w->body = parse_block(parser);
     
     return (ASTNode*)w;
 }
 
 // ============================================================
-// Parse statement (top-level expression)
+// Parse return statement
 // ============================================================
-static ASTNode* parse_statement(Parser* parser) {
-    if (parser_check(parser, TOKEN_FN)) {
-        parser_advance(parser); // consume fn
-        return parse_function(parser);
+static ASTNode* parse_return(Parser* parser) {
+    ASTReturn* ret = calloc(1, sizeof(ASTReturn));
+    ret->base.type = AST_RETURN;
+    
+    if (!parser_check(parser, TOKEN_SEMICOLON)) {
+        ret->value = parse_assignment_expr(parser);
     }
     
-    if (parser_check(parser, TOKEN_LET)) {
-        parser_advance(parser); // consume let
-        return parse_let(parser, false);
-    }
-    
-    if (parser_check(parser, TOKEN_CONST)) {
-        parser_advance(parser); // consume const
-        return parse_let(parser, true);
-    }
-    
-    if (parser_check(parser, TOKEN_IF)) {
-        parser_advance(parser); // consume if
-        return parse_if(parser);
-    }
-    
-    if (parser_check(parser, TOKEN_FOR)) {
-        parser_advance(parser); // consume for
-        return parse_for(parser);
-    }
-    
-    if (parser_check(parser, TOKEN_WHILE)) {
-        parser_advance(parser); // consume while
-        return parse_while(parser);
-    }
-    
-    if (parser_check(parser, TOKEN_RETURN)) {
-        parser_advance(parser); // consume return
-        return parse_return(parser);
-    }
-    
-    if (parser_check(parser, TOKEN_PRINT)) {
-        parser_advance(parser); // consume print
-        parser_consume(parser, TOKEN_LPAREN, "Expected '(' after print", &parser->error);
-        
-        ASTPrint* p = calloc(1, sizeof(ASTPrint));
-        p->base.type = AST_PRINT;
-        p->arg_capacity = 4;
-        p->args = calloc(p->arg_capacity, sizeof(ASTNode*));
-        
-        while (!parser_check(parser, TOKEN_RPAREN)) {
-            if (p->arg_count >= p->arg_capacity) {
-                p->arg_capacity *= 2;
-                p->args = realloc(p->args, p->arg_capacity * sizeof(ASTNode*));
-            }
-            p->args[p->arg_count++] = parse_expression(parser);
-            if (!parser_match(parser, TOKEN_COMMA)) {
-                break;
-            }
-        }
-        
-        parser_consume(parser, TOKEN_RPAREN, "Expected ')' after print args", 
-                      &parser->error);
-        parser_consume(parser, TOKEN_SEMICOLON, "Expected ';'", &parser->error);
-        
-        return (ASTNode*)p;
-    }
-    
-    // Expression statement
-    return parse_expression(parser);
+    parser_consume(parser, TOKEN_SEMICOLON, "Expected ';'", &parser->error);
+    return (ASTNode*)ret;
 }
 
 // ============================================================
-// Parse expression
+// Operator precedence parsing
 // ============================================================
-static ASTNode* parse_expression(Parser* parser) {
-    if (parser_check(parser, TOKEN_EOF) || 
-        parser_check(parser, TOKEN_RBRACE) ||
-        parser_check(parser, TOKEN_COMMA)) {
-        return NULL;
+static int get_precedence(TokenType type) {
+    switch (type) {
+        case TOKEN_OR: return 1;
+        case TOKEN_AND: return 2;
+        case TOKEN_EQEQ:
+        case TOKEN_NEQ: return 3;
+        case TOKEN_LT:
+        case TOKEN_GT:
+        case TOKEN_LTE:
+        case TOKEN_GTE: return 4;
+        case TOKEN_PLUS:
+        case TOKEN_MINUS: return 5;
+        case TOKEN_STAR:
+        case TOKEN_SLASH:
+        case TOKEN_PERCENT: return 6;
+        default: return 0;
     }
+}
+
+static ASTNode* parse_comparison_expr(Parser* parser) {
+    ASTNode* left = parse_additive_expr(parser);
+    if (!left) return NULL;
+    
+    while (parser_check(parser, TOKEN_LT) || 
+           parser_check(parser, TOKEN_GT) ||
+           parser_check(parser, TOKEN_LTE) ||
+           parser_check(parser, TOKEN_GTE) ||
+           parser_check(parser, TOKEN_EQEQ) ||
+           parser_check(parser, TOKEN_NEQ)) {
+        
+        TokenType op_type = parser_current(parser)->type;
+        parser_advance(parser);
+        
+        ASTNode* right = parse_additive_expr(parser);
+        if (!right) {
+            snprintf(parser->error.message, sizeof(parser->error.message),
+                     "Expected expression after operator");
+            parser->error.has_error = true;
+            return left;
+        }
+        
+        const char* op_str = NULL;
+        switch (op_type) {
+            case TOKEN_LT: op_str = "<"; break;
+            case TOKEN_GT: op_str = ">"; break;
+            case TOKEN_LTE: op_str = "<="; break;
+            case TOKEN_GTE: op_str = ">="; break;
+            case TOKEN_EQEQ: op_str = "=="; break;
+            case TOKEN_NEQ: op_str = "!="; break;
+        }
+        
+        ASTBinary* bin = calloc(1, sizeof(ASTBinary));
+        bin->base.type = AST_BINARY;
+        bin->op = strdup(op_str);
+        bin->left = left;
+        bin->right = right;
+        left = (ASTNode*)bin;
+    }
+    
+    return left;
+}
+
+static ASTNode* parse_additive_expr(Parser* parser) {
+    ASTNode* left = parse_multiplicative_expr(parser);
+    if (!left) return NULL;
+    
+    while (parser_check(parser, TOKEN_PLUS) || parser_check(parser, TOKEN_MINUS)) {
+        TokenType op_type = parser_current(parser)->type;
+        parser_advance(parser);
+        
+        ASTNode* right = parse_multiplicative_expr(parser);
+        if (!right) break;
+        
+        const char* op_str = op_type == TOKEN_PLUS ? "+" : "-";
+        ASTBinary* bin = calloc(1, sizeof(ASTBinary));
+        bin->base.type = AST_BINARY;
+        bin->op = strdup(op_str);
+        bin->left = left;
+        bin->right = right;
+        left = (ASTNode*)bin;
+    }
+    
+    return left;
+}
+
+static ASTNode* parse_multiplicative_expr(Parser* parser) {
+    ASTNode* left = parse_unary(parser);
+    if (!left) return NULL;
+    
+    while (parser_check(parser, TOKEN_STAR) || 
+           parser_check(parser, TOKEN_SLASH) ||
+           parser_check(parser, TOKEN_PERCENT)) {
+        TokenType op_type = parser_current(parser)->type;
+        parser_advance(parser);
+        
+        ASTNode* right = parse_unary(parser);
+        if (!right) break;
+        
+        const char* op_str = NULL;
+        switch (op_type) {
+            case TOKEN_STAR: op_str = "*"; break;
+            case TOKEN_SLASH: op_str = "/"; break;
+            case TOKEN_PERCENT: op_str = "%"; break;
+        }
+        
+        ASTBinary* bin = calloc(1, sizeof(ASTBinary));
+        bin->base.type = AST_BINARY;
+        bin->op = strdup(op_str);
+        bin->left = left;
+        bin->right = right;
+        left = (ASTNode*)bin;
+    }
+    
+    return left;
+}
+
+static ASTNode* parse_assignment_expr(Parser* parser) {
+    ASTNode* left = parse_comparison_expr(parser);
+    if (!left) return NULL;
+    
+    // Handle assignment: x = expr
+    if (parser_check(parser, TOKEN_EQ)) {
+        parser_advance(parser);
+        ASTNode* right = parse_assignment_expr(parser);
+        
+        ASTBinary* bin = calloc(1, sizeof(ASTBinary));
+        bin->base.type = AST_BINARY;
+        bin->op = strdup("=");
+        bin->left = left;
+        bin->right = right;
+        return (ASTNode*)bin;
+    }
+    
+    return left;
+}
+
+// ============================================================
+// Parse unary prefix expression: -x, +x, not x
+// Binds tighter than any binary operator.
+// ============================================================
+static ASTNode* parse_unary(Parser* parser) {
+    if (parser_check(parser, TOKEN_MINUS) || parser_check(parser, TOKEN_PLUS)) {
+        bool negate = parser_check(parser, TOKEN_MINUS);
+        parser_advance(parser);
+        
+        ASTNode* operand = parse_unary(parser);
+        if (!operand || !negate) return operand;   // unary plus is a no-op
+        
+        ASTUnary* un = calloc(1, sizeof(ASTUnary));
+        un->base.type = AST_UNARY;
+        un->op = strdup("-");
+        un->operand = operand;
+        return (ASTNode*)un;
+    }
+    
+    if (parser_check(parser, TOKEN_NOT)) {
+        parser_advance(parser);
+        
+        ASTNode* operand = parse_unary(parser);
+        if (!operand) return NULL;
+        
+        ASTUnary* un = calloc(1, sizeof(ASTUnary));
+        un->base.type = AST_UNARY;
+        un->op = strdup("not");
+        un->operand = operand;
+        return (ASTNode*)un;
+    }
+    
     return parse_primary(parser);
 }
 
+// ============================================================
+// Parse primary expression
+// ============================================================
 static ASTNode* parse_primary(Parser* parser) {
     Token* token = parser_current(parser);
     
@@ -421,15 +514,13 @@ static ASTNode* parse_primary(Parser* parser) {
         return (ASTNode*)node;
     }
     
-    // Some
+    // Some/None
     if (parser_match(parser, TOKEN_SOME)) {
         ASTSome* some = calloc(1, sizeof(ASTSome));
         some->base.type = AST_SOME;
         some->value = parse_primary(parser);
         return (ASTNode*)some;
     }
-    
-    // None
     if (parser_match(parser, TOKEN_NONE)) {
         ASTNone* none = calloc(1, sizeof(ASTNone));
         none->base.type = AST_NONE;
@@ -440,7 +531,6 @@ static ASTNode* parse_primary(Parser* parser) {
     if (parser_match(parser, TOKEN_IDENT)) {
         char* name = strdup(token->value);
         
-        // Check if function call
         if (parser_match(parser, TOKEN_LPAREN)) {
             ASTCall* call = calloc(1, sizeof(ASTCall));
             call->base.type = AST_CALL;
@@ -453,7 +543,7 @@ static ASTNode* parse_primary(Parser* parser) {
                     call->arg_capacity *= 2;
                     call->args = realloc(call->args, call->arg_capacity * sizeof(ASTNode*));
                 }
-                call->args[call->arg_count++] = parse_expression(parser);
+                call->args[call->arg_count++] = parse_assignment_expr(parser);
                 if (!parser_match(parser, TOKEN_COMMA)) {
                     break;
                 }
@@ -463,7 +553,6 @@ static ASTNode* parse_primary(Parser* parser) {
             return (ASTNode*)call;
         }
         
-        // Just identifier
         ASTIdent* ident = calloc(1, sizeof(ASTIdent));
         ident->base.type = AST_IDENT;
         ident->name = name;
@@ -472,7 +561,7 @@ static ASTNode* parse_primary(Parser* parser) {
     
     // Grouped expression
     if (parser_match(parser, TOKEN_LPAREN)) {
-        ASTNode* expr = parse_expression(parser);
+        ASTNode* expr = parse_assignment_expr(parser);
         parser_consume(parser, TOKEN_RPAREN, "Expected ')'", &parser->error);
         return expr;
     }
@@ -483,11 +572,88 @@ static ASTNode* parse_primary(Parser* parser) {
                  "Unexpected token '%s' at line %d:%d",
                  token->value, token->line, token->column);
         parser->error.has_error = true;
-        parser->error.line = token->line;
-        parser->error.column = token->column;
         parser_advance(parser);
     }
     return NULL;
+}
+
+// ============================================================
+// Parse statement
+// ============================================================
+static ASTNode* parse_statement(Parser* parser) {
+    if (parser_check(parser, TOKEN_FN)) {
+        parser_advance(parser);
+        return parse_function(parser);
+    }
+    
+    if (parser_check(parser, TOKEN_LET)) {
+        parser_advance(parser);
+        return parse_let(parser, false);
+    }
+    
+    if (parser_check(parser, TOKEN_CONST)) {
+        parser_advance(parser);
+        return parse_let(parser, true);
+    }
+    
+    if (parser_check(parser, TOKEN_IF)) {
+        parser_advance(parser);
+        return parse_if(parser);
+    }
+    
+    if (parser_check(parser, TOKEN_FOR)) {
+        parser_advance(parser);
+        return parse_for(parser);
+    }
+    
+    if (parser_check(parser, TOKEN_WHILE)) {
+        parser_advance(parser);
+        return parse_while(parser);
+    }
+    
+    if (parser_check(parser, TOKEN_RETURN)) {
+        parser_advance(parser);
+        return parse_return(parser);
+    }
+    
+    if (parser_check(parser, TOKEN_PRINT)) {
+        parser_advance(parser);
+        parser_consume(parser, TOKEN_LPAREN, "Expected '(' after print", &parser->error);
+        
+        ASTPrint* p = calloc(1, sizeof(ASTPrint));
+        p->base.type = AST_PRINT;
+        p->arg_capacity = 4;
+        p->args = calloc(p->arg_capacity, sizeof(ASTNode*));
+        
+        while (!parser_check(parser, TOKEN_RPAREN)) {
+            if (p->arg_count >= p->arg_capacity) {
+                p->arg_capacity *= 2;
+                p->args = realloc(p->args, p->arg_capacity * sizeof(ASTNode*));
+            }
+            p->args[p->arg_count++] = parse_assignment_expr(parser);
+            if (!parser_match(parser, TOKEN_COMMA)) {
+                break;
+            }
+        }
+        
+        parser_consume(parser, TOKEN_RPAREN, "Expected ')' after print args", &parser->error);
+        parser_consume(parser, TOKEN_SEMICOLON, "Expected ';'", &parser->error);
+        
+        return (ASTNode*)p;
+    }
+    
+    // Expression statement: must be terminated by ';'.
+    ASTNode* expr = parse_assignment_expr(parser);
+    if (parser->error.has_error) return expr;
+    parser_consume(parser, TOKEN_SEMICOLON, "Expected ';' after expression", &parser->error);
+    return expr;
+}
+
+// ============================================================
+// Parse expression (alias for assignment_expr)
+// ============================================================
+static ASTNode* parse_expression(Parser* parser) {
+    return parse_assignment_expr(parser);
 }
 
 // ============================================================

@@ -1,0 +1,9 @@
+fn main() {
+    let age: int = 20;
+    
+    if age >= 17 {
+        print("Adult\n");
+    } else {
+        print("Child\n");
+    }
+}

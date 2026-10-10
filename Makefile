@@ -40,10 +40,17 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c
 
 clean:
 	rm -rf $(OBJDIR) $(BINDIR)
+	rm -f $(TESTDIR)/hello $(TESTDIR)/ifelse $(TESTDIR)/loop \
+	      $(TESTDIR)/loops $(TESTDIR)/numbers $(TESTDIR)/factorial
 
 run: all
 	./$(TARGET) run $(TESTDIR)/hello.ga
 
 test: all
-	@echo "Running tests..."
-	./$(TARGET) check $(TESTDIR)/hello.ga
+	./run_tests.sh
+
+# Inspect the generated assembly for a program:  make asm FILE=testdata/loop.ga
+asm: all
+	GAR_KEEP_ASM=1 ./$(TARGET) build $(FILE)
+	@echo "--- assembly ---"
+	@cat /tmp/gar_$$.asm 2>/dev/null || ls -t /tmp/gar_*.asm | head -1 | xargs cat

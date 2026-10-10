@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include <assert.h>
+#include <stdbool.h>
 
 // ============================================================
 // Helpers
@@ -63,12 +63,14 @@ static void lexer_skip_comment(Lexer* lexer) {
             }
             lexer_advance(lexer);
         }
-        // Error: unclosed comment (we'll handle this in error reporting)
         return;
     }
 }
 
-static Token* token_new(TokenType type, const char* value, int line, int column) {
+// ============================================================
+// Token management
+// ============================================================
+Token* token_new(TokenType type, const char* value, int line, int column) {
     Token* token = calloc(1, sizeof(Token));
     token->type = type;
     token->value = value ? strdup(value) : NULL;
@@ -84,46 +86,35 @@ void token_free(Token* token) {
 }
 
 // ============================================================
-// String literal
+// Read string literal
 // ============================================================
 static Token* read_string(Lexer* lexer) {
     int start_line = lexer->line;
     int start_col = lexer->column;
     lexer_advance(lexer); // skip opening "
     
-    // Calculate string length
+    char* value = malloc(256);
     int len = 0;
-    int temp_pos = lexer->pos;
-    while (lexer->source[temp_pos] != '\0' && lexer->source[temp_pos] != '"') {
-        if (lexer->source[temp_pos] == '\\') {
-            temp_pos++; // skip escape char
-        }
-        temp_pos++;
-        len++;
-    }
-    
-    char* value = calloc(len + 1, sizeof(char));
-    int i = 0;
     while (lexer->current_char != '\0' && lexer->current_char != '"') {
-        if (lexer->current_char == '\\') {
+        if (lexer->current_char == '\\' && len < 250) {
             lexer_advance(lexer);
             switch (lexer->current_char) {
-                case 'n': value[i++] = '\n'; break;
-                case 't': value[i++] = '\t'; break;
-                case 'r': value[i++] = '\r'; break;
-                case '\\': value[i++] = '\\'; break;
-                case '"': value[i++] = '"'; break;
+                case 'n': value[len++] = '\n'; break;
+                case 't': value[len++] = '\t'; break;
+                case 'r': value[len++] = '\r'; break;
+                case '\\': value[len++] = '\\'; break;
+                case '"': value[len++] = '"'; break;
                 default:
-                    value[i++] = lexer->current_char;
+                    value[len++] = lexer->current_char;
                     break;
             }
             lexer_advance(lexer);
         } else {
-            value[i++] = lexer->current_char;
+            value[len++] = lexer->current_char;
             lexer_advance(lexer);
         }
     }
-    value[i] = '\0';
+    value[len] = '\0';
     
     if (lexer->current_char == '"') {
         lexer_advance(lexer); // skip closing "
@@ -133,7 +124,7 @@ static Token* read_string(Lexer* lexer) {
 }
 
 // ============================================================
-// Number literal
+// Read number literal
 // ============================================================
 static Token* read_number(Lexer* lexer) {
     int start_line = lexer->line;
@@ -143,21 +134,26 @@ static Token* read_number(Lexer* lexer) {
     int len = 0;
     int temp_pos = lexer->pos;
     
-    while (isdigit((unsigned char)lexer->source[temp_pos]) || 
-           lexer->source[temp_pos] == '.') {
+    while (temp_pos < lexer->length && 
+           (isdigit((unsigned char)lexer->source[temp_pos]) || 
+            lexer->source[temp_pos] == '.')) {
         if (lexer->source[temp_pos] == '.') {
-            if (is_float) break; // second dot, stop
+            // Check if this is ".." range operator
+            if (temp_pos + 1 < lexer->length && 
+                lexer->source[temp_pos + 1] == '.') {
+                break;
+            }
+            if (is_float) break;
             is_float = true;
         }
         temp_pos++;
         len++;
     }
     
-    char* num_str = calloc(len + 1, sizeof(char));
+    char* num_str = malloc(len + 1);
     memcpy(num_str, &lexer->source[lexer->pos], len);
     num_str[len] = '\0';
     
-    // Advance lexer position
     for (int i = 0; i < len; i++) {
         lexer_advance(lexer);
     }
@@ -167,7 +163,7 @@ static Token* read_number(Lexer* lexer) {
 }
 
 // ============================================================
-// Identifier / keyword
+// Read identifier/keyword
 // ============================================================
 static Token* read_identifier(Lexer* lexer) {
     int start_line = lexer->line;
@@ -175,22 +171,21 @@ static Token* read_identifier(Lexer* lexer) {
     
     int len = 0;
     int temp_pos = lexer->pos;
-    while (isalnum((unsigned char)lexer->source[temp_pos]) || 
-           lexer->source[temp_pos] == '_') {
+    while (temp_pos < lexer->length && 
+           (isalnum((unsigned char)lexer->source[temp_pos]) || 
+            lexer->source[temp_pos] == '_')) {
         temp_pos++;
         len++;
     }
     
-    char* ident = calloc(len + 1, sizeof(char));
+    char* ident = malloc(len + 1);
     memcpy(ident, &lexer->source[lexer->pos], len);
     ident[len] = '\0';
     
-    // Advance lexer
     for (int i = 0; i < len; i++) {
         lexer_advance(lexer);
     }
     
-    // Check if keyword
     TokenType type = TOKEN_IDENT;
     if (strcmp(ident, "fn") == 0) type = TOKEN_FN;
     else if (strcmp(ident, "let") == 0) type = TOKEN_LET;
@@ -214,7 +209,6 @@ static Token* read_identifier(Lexer* lexer) {
     else if (strcmp(ident, "and") == 0) type = TOKEN_AND;
     else if (strcmp(ident, "or") == 0) type = TOKEN_OR;
     else if (strcmp(ident, "not") == 0) type = TOKEN_NOT;
-    // Type keywords
     else if (strcmp(ident, "int") == 0) type = TOKEN_INT_TYPE;
     else if (strcmp(ident, "float64") == 0) type = TOKEN_FLOAT64_TYPE;
     else if (strcmp(ident, "bool") == 0) type = TOKEN_BOOL_TYPE;
@@ -271,7 +265,18 @@ Token* lexer_next_token(Lexer* lexer) {
         }
         
         // Number literal
-        if (isdigit((unsigned char)c) || (c == '.' && isdigit((unsigned char)lexer_peek(lexer, 1)))) {
+        if (isdigit((unsigned char)c)) {
+            return read_number(lexer);
+        }
+        
+        // Handle ".." range operator (but not float literals like ".5")
+        if (c == '.' && lexer_peek(lexer, 1) == '.') {
+            lexer_advance(lexer);
+            lexer_advance(lexer);
+            return token_new(TOKEN_DOTDOT, NULL, line, col);
+        }
+        
+        if (c == '.' && isdigit((unsigned char)lexer_peek(lexer, 1))) {
             return read_number(lexer);
         }
         
@@ -312,7 +317,7 @@ Token* lexer_next_token(Lexer* lexer) {
             case '=': type = TOKEN_EQ; break;
             case '<': type = TOKEN_LT; break;
             case '>': type = TOKEN_GT; break;
-            case '&': type = TOKEN_AND; break; // might need && support
+            case '&': type = TOKEN_AND; break;
             case '|': type = TOKEN_OR; break;
             case '!': type = TOKEN_NOT; break;
             default:
@@ -340,7 +345,6 @@ Token** lexer_tokenize(const char* source, int* token_count, Error* error) {
         return NULL;
     }
     
-    // First pass: count tokens
     int capacity = 128;
     Token** tokens = calloc(capacity, sizeof(Token*));
     Token* token;
@@ -358,9 +362,8 @@ Token** lexer_tokenize(const char* source, int* token_count, Error* error) {
             return NULL;
         }
     }
-    free(token); // free EOF token
+    free(token);
     
-    // Add EOF
     if (*token_count >= capacity) {
         tokens = realloc(tokens, (capacity + 1) * sizeof(Token*));
     }

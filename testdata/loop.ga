@@ -1,0 +1,10 @@
+// Counting loop with a label prefix.
+// Author: GalangTeam
+
+fn main() {
+    for i in 0..5 {
+        print("Count: ");
+        print(i);
+        print("\n");
+    }
+}

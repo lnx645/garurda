@@ -1,12 +1,20 @@
-# Build outputs
+# Build artifacts
 obj/
 bin/
 *.o
-*.d
-*.ga
-hello
-factorial
+*.a
+*.so
 
-# Temporary files
-*~
-.*.swp
+# Generated binaries from test programs
+testdata/hello
+testdata/ifelse
+testdata/loop
+testdata/loops
+testdata/numbers
+testdata/factorial
+
+# Compiler temporaries
+/tmp/gar_*.asm
+*.asm
+*.s
+*.goj

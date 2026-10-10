@@ -1,4 +1,18 @@
-// Factorial example - simplified
+// Factorial: exercises function calls, parameters and return values.
+// Author: GalangTeam
+
+fn factorial(n: int) -> int {
+    if n <= 1 {
+        return 1;
+    }
+    return n * factorial(n - 1);
+}
+
 fn main() {
-    print("Hello from GarudaLang!\n");
+    for i in 1..6 {
+        print(i);
+        print("! = ");
+        print(factorial(i));
+        print("\n");
+    }
 }

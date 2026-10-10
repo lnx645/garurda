@@ -1,0 +1,98 @@
+// Regression tests for the for loop, while loop and scoping fixes.
+// Author: GalangTeam
+
+fn main() {
+    // 1. Basic range, single print
+    for i in 0..3 {
+        print(i);
+    }
+    print("|");
+
+    // 2. Descending range must produce nothing (start >= end)
+    for i in 3..0 {
+        print("bad");
+    }
+    print("|");
+
+    // 3. Nested loops
+    for i in 0..2 {
+        for j in 0..2 {
+            print(j);
+        }
+        print("-");
+    }
+    print("|");
+
+    // 4. Loop variable must not leak after the loop
+    //    (checker must reject this if scoping works)
+
+    // 5. Range end evaluated once: side effects would show if re-evaluated
+    let n: int = 2;
+    for i in 0..n {
+        print(i);
+    }
+    print("|");
+
+    // 6. Arithmetic inside a loop
+    let acc: int = 0;
+    for i in 1..5 {
+        acc = acc + i;
+    }
+    print(acc);
+    print("|");
+
+    // 7. Comparison operators, all six, both directions
+    let a: int = 10;
+    let b: int = 3;
+    if a > b  { print("g"); } else { print("n"); }
+    if b > a  { print("g"); } else { print("n"); }
+    if a >= b { print("g"); } else { print("n"); }
+    if b >= a { print("g"); } else { print("n"); }
+    if a < b  { print("g"); } else { print("n"); }
+    if b < a  { print("g"); } else { print("n"); }
+    if a <= b { print("g"); } else { print("n"); }
+    if b <= a { print("g"); } else { print("n"); }
+    if a == b { print("g"); } else { print("n"); }
+    if a != b { print("g"); } else { print("n"); }
+    print("|");
+
+    // 8. While loop
+    let k: int = 0;
+    while k < 3 {
+        print(k);
+        k = k + 1;
+    }
+    print("|");
+
+    // 9. Arithmetic
+    print(7 / 2);
+    print(",");
+    print(7 % 2);
+    print(",");
+    print(-7 / 2);
+    print(",");
+    print(-7 % 2);
+    print(",");
+
+    // 10. Shadowing: inner declarations must not escape their block
+    let x: int = 1;
+    if true {
+        let x: int = 2;
+        if true {
+            let x: int = 3;
+            print(x);
+        }
+        print(x);
+    }
+    print(x);
+    print("|");
+
+    // 11. Truthiness is strict: only bool is allowed
+    let t: bool = true;
+    let f: bool = false;
+    if t { print("T"); }
+    if f { print("F"); }
+    print("|");
+
+    print("\n");
+}

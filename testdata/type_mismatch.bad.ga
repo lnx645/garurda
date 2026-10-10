@@ -1,0 +1,4 @@
+fn main() {
+    // Declared int, assigned a string.
+    let n: int = "not a number";
+}

@@ -1,0 +1,7 @@
+fn main() {
+    let name: string = "garuda";
+    // A string cannot be ordered with an int.
+    if name >= 17 {
+        print("big");
+    }
+}

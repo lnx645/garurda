@@ -1,0 +1,7 @@
+fn main() {
+    let ratio: float64 = 2.5;
+    // A float range bound is not allowed; the loop variable is an int.
+    for i in 0..ratio {
+        print(i);
+    }
+}

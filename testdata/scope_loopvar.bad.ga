@@ -1,0 +1,7 @@
+fn main() {
+    for i in 0..3 {
+        print(i);
+    }
+    // 'i' is scoped to the loop; using it here must be rejected.
+    print(i);
+}

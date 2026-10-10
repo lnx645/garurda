@@ -1,0 +1,13 @@
+fn first() {
+    let secret: int = 42;
+}
+
+fn second() {
+    // 'secret' is local to first(); this must be rejected.
+    print(secret);
+}
+
+fn main() {
+    first();
+    second();
+}

@@ -1,0 +1,7 @@
+fn main() {
+    let count: int = 3;
+    // Conditions must be bool, not int. Zero/non-zero is not truthy here.
+    if count {
+        print("running");
+    }
+}

@@ -28,6 +28,7 @@ Lexer* lexer_new(const char* source);
 void lexer_free(Lexer* lexer);
 Token* lexer_next_token(Lexer* lexer);
 Token** lexer_tokenize(const char* source, int* token_count, Error* error);
+const char* token_type_str(TokenType type);
 
 // ============================================================
 // Token management
