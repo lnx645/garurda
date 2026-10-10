@@ -1,0 +1,39 @@
+// Float arithmetic, comparisons, parameters and conversions.
+// Author: GalangTeam
+
+fn half(x: float64) -> float64 {
+    return x / 2.0;
+}
+
+fn main() {
+    let pi: float64 = 3.14159;
+    print(pi);
+    print("|");
+    print(pi + 1.0);
+    print("|");
+    print(pi - 1.0);
+    print("|");
+    print(pi * 2.0);
+    print("|");
+    print(pi / 2.0);
+    print("|");
+    print(half(10.0));
+    print("|");
+
+    // Comparisons yield 1/0.
+    print(pi > 3.0);
+    print(pi < 3.0);
+    print(pi >= pi);
+    print("|");
+
+    // int widens into a float64 slot.
+    let n: int = 7;
+    let x: float64 = n;
+    print(x);
+    print("|");
+
+    print(-pi);
+    print("|");
+    print(0.5);
+    print("\n");
+}

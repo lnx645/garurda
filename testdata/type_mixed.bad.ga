@@ -1,0 +1,5 @@
+fn main() {
+    let x: float64 = 1.5;
+    // Mixed int/float arithmetic is rejected; convert explicitly.
+    print(x + 1);
+}

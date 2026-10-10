@@ -1,0 +1,21 @@
+fn main() {
+    let t: bool = true;
+    let f: bool = false;
+
+    if t and not f { print("A"); }
+    if f and t { print("B"); }
+    if t or f { print("C"); }
+    if f or t { print("D"); }
+    if f or f { print("E"); }
+    if not t { print("F"); }
+    if not f { print("G"); }
+    print("|");
+
+    // Precedence: 'and' binds tighter than 'or'
+    if f and f or t { print("H"); }
+
+    // Short-circuit proof: this must NOT print
+    let boom: int = 0;
+    if f and (1 / boom == 1) { print("X"); }
+    print("\n");
+}

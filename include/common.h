@@ -177,6 +177,23 @@ struct ASTNode;
 typedef struct ASTNode ASTNode;
 
 // ============================================================
+// Inferred type tag
+//
+// Attached to every expression node by the type checker. The code
+// generator needs it to choose between integer and float lowering --
+// without it there is no way to tell `1 + 2` from `1.0 + 2.0`, and
+// silently treating a float as an int truncates it.
+// ============================================================
+typedef enum {
+    TY_UNKNOWN,
+    TY_INT,
+    TY_FLOAT,
+    TY_BOOL,
+    TY_STRING,
+    TY_VOID
+} TypeTag;
+
+// ============================================================
 // Error handling
 // ============================================================
 typedef struct {

@@ -164,8 +164,31 @@ static const FnSig* sig_lookup(const char* name) {
 
 // ============================================================
 // Check a single expression
+//
+// The tag is recorded on the node so codegen can pick int vs float
+// lowering; without it `1.0 + 2.0` is indistinguishable from `1 + 2`
+// and a float gets truncated into an int slot.
 // ============================================================
+static TypeTag tag_of(const char* type) {
+    if (!type) return TY_UNKNOWN;
+    if (strcmp(type, "int") == 0)     return TY_INT;
+    if (strcmp(type, "float64") == 0) return TY_FLOAT;
+    if (strcmp(type, "bool") == 0)    return TY_BOOL;
+    if (strcmp(type, "string") == 0)  return TY_STRING;
+    if (strcmp(type, "void") == 0)    return TY_VOID;
+    return TY_UNKNOWN;
+}
+
+static const char* check_expr_raw(ASTNode* node, Error* error);
+
 static const char* check_expr(ASTNode* node, Error* error) {
+    if (!node) return "void";
+    const char* t = check_expr_raw(node, error);
+    node->tag = tag_of(t);
+    return t;
+}
+
+static const char* check_expr_raw(ASTNode* node, Error* error) {
     if (!node) return "void";
     
     switch (node->type) {
@@ -216,6 +239,20 @@ static const char* check_expr(ASTNode* node, Error* error) {
                 return NULL;
             }
             
+            // Logical operators: both operands must be bool. The codegen
+            // short-circuits, so the right operand is not evaluated when the
+            // left one already decides the result.
+            if (strcmp(bin->op, "and") == 0 || strcmp(bin->op, "or") == 0) {
+                if (strcmp(left_type, "bool") != 0 || strcmp(right_type, "bool") != 0) {
+                    snprintf(error->message, sizeof(error->message),
+                             "'%s' requires bool operands, got %s and %s",
+                             bin->op, left_type, right_type);
+                    error->has_error = true;
+                    return NULL;
+                }
+                return "bool";
+            }
+
             // Comparison operators
             if (strcmp(bin->op, "==") == 0 ||
                 strcmp(bin->op, "!=") == 0 ||

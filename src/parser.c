@@ -63,6 +63,8 @@ static bool parser_consume(Parser* parser, TokenType type,
 static ASTNode* parse_statement(Parser* parser);
 static ASTNode* parse_expression(Parser* parser);
 static ASTNode* parse_assignment_expr(Parser* parser);
+static ASTNode* parse_logical_or(Parser* parser);
+static ASTNode* parse_logical_and(Parser* parser);
 static ASTNode* parse_comparison_expr(Parser* parser);
 static ASTNode* parse_additive_expr(Parser* parser);
 static ASTNode* parse_multiplicative_expr(Parser* parser);
@@ -320,6 +322,52 @@ static int get_precedence(TokenType type) {
     }
 }
 
+// ============================================================
+// Logical operators
+//
+//   or  <  and  <  not  <  comparison  <  additive
+//
+// `and` and `or` are short-circuiting at runtime; the checker enforces
+// bool operands so the lowering never has to reason about non-bools.
+// ============================================================
+static ASTNode* parse_logical_or(Parser* parser) {
+    ASTNode* left = parse_logical_and(parser);
+    if (!left) return NULL;
+
+    while (parser_check(parser, TOKEN_OR)) {
+        parser_advance(parser);
+        ASTNode* right = parse_logical_and(parser);
+        if (!right) return left;
+
+        ASTBinary* bin = calloc(1, sizeof(ASTBinary));
+        bin->base.type = AST_BINARY;
+        bin->op = strdup("or");
+        bin->left = left;
+        bin->right = right;
+        left = (ASTNode*)bin;
+    }
+    return left;
+}
+
+static ASTNode* parse_logical_and(Parser* parser) {
+    ASTNode* left = parse_comparison_expr(parser);
+    if (!left) return NULL;
+
+    while (parser_check(parser, TOKEN_AND)) {
+        parser_advance(parser);
+        ASTNode* right = parse_comparison_expr(parser);
+        if (!right) return left;
+
+        ASTBinary* bin = calloc(1, sizeof(ASTBinary));
+        bin->base.type = AST_BINARY;
+        bin->op = strdup("and");
+        bin->left = left;
+        bin->right = right;
+        left = (ASTNode*)bin;
+    }
+    return left;
+}
+
 static ASTNode* parse_comparison_expr(Parser* parser) {
     ASTNode* left = parse_additive_expr(parser);
     if (!left) return NULL;
@@ -418,10 +466,11 @@ static ASTNode* parse_multiplicative_expr(Parser* parser) {
 }
 
 static ASTNode* parse_assignment_expr(Parser* parser) {
-    ASTNode* left = parse_comparison_expr(parser);
+    ASTNode* left = parse_logical_or(parser);
     if (!left) return NULL;
     
-    // Handle assignment: x = expr
+    // Assignment is right-associative and sits above the logical operators,
+    // so `a = b and c` parses as `a = (b and c)`.
     if (parser_check(parser, TOKEN_EQ)) {
         parser_advance(parser);
         ASTNode* right = parse_assignment_expr(parser);

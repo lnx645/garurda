@@ -25,6 +25,7 @@ SRCS = $(SRCDIR)/main.c \
        $(SRCDIR)/runtime.c
 
 OBJS = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SRCS))
+DEPS = $(OBJS:.o=.d)
 
 .PHONY: all clean run test
 
@@ -35,9 +36,9 @@ $(TARGET): $(OBJS)
 	$(CC) $(OBJS) -o $@ $(LDFLAGS)
 	@echo "Built $(TARGET)"
 
-$(OBJDIR)/%.o: $(SRCDIR)/%.c
+$(OBJDIR)/%.o: $(SRCDIR)/%.c $(wildcard $(INCDIR)/*.h)
 	@mkdir -p $(OBJDIR)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -MMD -MP -c $< -o $@
 
 clean:
 	rm -rf $(OBJDIR) $(BINDIR)
@@ -55,3 +56,6 @@ asm: all
 	GAR_KEEP_ASM=1 ./$(TARGET) build $(FILE)
 	@echo "--- assembly ---"
 	@cat /tmp/gar_$$.asm 2>/dev/null || ls -t /tmp/gar_*.asm | head -1 | xargs cat
+
+# Auto-generated header dependencies (so editing a .h rebuilds its users).
+-include $(DEPS)

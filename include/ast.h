@@ -44,6 +44,7 @@ typedef struct ASTImport ASTImport;
 // ============================================================
 struct ASTNode {
     ASTNodeType type;
+    TypeTag tag;      // filled in by the type checker
     int line;
     int column;
 };

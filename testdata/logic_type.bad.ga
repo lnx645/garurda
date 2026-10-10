@@ -1,0 +1,7 @@
+fn main() {
+    let n: int = 1;
+    // 'and' requires bool operands.
+    if n and true {
+        print("bad");
+    }
+}
