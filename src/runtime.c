@@ -1,1 +1,86 @@
-Ly8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09Ci8vIFJ1bnRpbWUgbGlicmFyeSBmb3IgR2FydWRhTGFuZwovLyBBdXRob3I6IEdhbGFuZ1RlYW0KLy8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09CgojaW5jbHVkZSAicnVudGltZS5oIgojaW5jbHVkZSA8dW5pc3RkLmg+CiNpbmNsdWRlIDxzdGRsaWIuaD4KI2luY2x1ZGUgPHN0cmluZy5oPgojaW5jbHVkZSA8c3RkaW8uaD4KCi8vID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQovLyBNZW1vcnkgYWxsb2NhdGlvbiAodXNpbmcgc3lzdGVtIG1hbGxvYyBmb3Igbm93KQovLyA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0Kdm9pZCogZ2FfbWFsbG9jKHNpemVfdCBzaXplKSB7CiAgICByZXR1cm4gbWFsbG9jKHNpemUpOwp9Cgp2b2lkKiBnYV9jYWxsb2Moc2l6ZV90IG5tZW1iLCBzaXplX3Qgc2l6ZSkgewogICAgcmV0dXJuIGNhbGxvYyhubWVtYiwgc2l6ZSk7Cn0KCnZvaWQqIGdhX3JlYWxsb2Modm9pZCogcHRyLCBzaXplX3Qgc2l6ZSkgewogICAgcmV0dXJuIHJlYWxsb2MocHRyLCBzaXplKTsKfQoKdm9pZCBnYV9mcmVlKHZvaWQqIHB0cikgewogICAgZnJlZShwdHIpOwp9CgovLyA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KLy8gU3RyaW5nIG9wZXJhdGlvbnMKLy8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09CmludCBnYV9zdHJsZW4oY29uc3QgY2hhciogcykgewogICAgcmV0dXJuIChpbnQpc3RybGVuKHMpOwp9CgpjaGFyKiBnYV9zdHJkdXAoY29uc3QgY2hhciogcykgewogICAgc2l6ZV90IGxlbiA9IHN0cmxlbihzKTsKICAgIGNoYXIqIGR1cCA9IG1hbGxvYyhsZW4gKyAxKTsKICAgIGlmIChkdXApIHsKICAgICAgICBtZW1jcHkoZHVwLCBzLCBsZW4gKyAxKTsKICAgIH0KICAgIHJldHVybiBkdXA7Cn0KCi8vID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQovLyBQcmludCBmdW5jdGlvbnMKLy8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09CnZvaWQgZ2FfcHJpbnRfc3RyaW5nKGNvbnN0IGNoYXIqIHMpIHsKICAgIGlmICghcykgcmV0dXJuOwogICAgc2l6ZV90IGxlbiA9IHN0cmxlbihzKTsKICAgIHNzaXplX3QgbiA9IHdyaXRlKFNURE9VVF9GSUxFTk8sIHMsIGxlbik7CiAgICAodm9pZCluOyAvKiBiZXN0LWVmZm9ydCBvdXRwdXQ7IGVycm9ycyBhcmUgaWdub3JlZCBieSBkZXNpZ24gKi8KfQoKdm9pZCBnYV9wcmludF9pbnQoaW50NjRfdCB2YWwpIHsKICAgIGNoYXIgYnVmWzMyXTsKICAgIGludCBsZW4gPSBzbnByaW50ZihidWYsIHNpemVvZihidWYpLCAiJWxsZCIsIChsb25nIGxvbmcpdmFsKTsKICAgIHNzaXplX3QgbiA9IHdyaXRlKFNURE9VVF9GSUxFTk8sIGJ1ZiwgKHNpemVfdCkobGVuID4gMCA/IGxlbiA6IDApKTsKICAgICh2b2lkKW47Cn0KCnZvaWQgZ2FfcHJpbnRfZmxvYXQoZG91YmxlIHZhbCkgewogICAgY2hhciBidWZbNjRdOwogICAgaW50IGxlbiA9IHNucHJpbnRmKGJ1Ziwgc2l6ZW9mKGJ1ZiksICIlZyIsIHZhbCk7CiAgICBzc2l6ZV90IG4gPSB3cml0ZShTVERPVVRfRklMRU5PLCBidWYsIChzaXplX3QpKGxlbiA+IDAgPyBsZW4gOiAwKSk7CiAgICAodm9pZCluOwp9Cgp2b2lkIGdhX3ByaW50X2Jvb2woYm9vbCB2YWwpIHsKICAgIGNvbnN0IGNoYXIqIHMgPSB2YWwgPyAidHJ1ZSIgOiAiZmFsc2UiOwogICAgc3NpemVfdCBuID0gd3JpdGUoU1RET1VUX0ZJTEVOTywgcywgc3RybGVuKHMpKTsKICAgICh2b2lkKW47Cn0KCi8vID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQovLyBSdW50aW1lIGluaXRpYWxpemF0aW9uCi8vID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQp2b2lkIGdhX3J1bnRpbWVfaW5pdCh2b2lkKSB7CiAgICAvLyBUT0RPOiBpbml0aWFsaXplIEdDLCBzY2hlZHVsZXIsIGV0Yy4KfQoKdm9pZCBnYV9ydW50aW1lX3NodXRkb3duKHZvaWQpIHsKICAgIC8vIFRPRE86IHNodXRkb3duIEdDLCBzY2hlZHVsZXIsIGV0Yy4KfQo=
+// ============================================================
+// Runtime library for GarudaLang
+// Author: GalangTeam
+// ============================================================
+
+#include "runtime.h"
+#include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+
+// ============================================================
+// Memory allocation (using system malloc for now)
+// ============================================================
+void* ga_malloc(size_t size) {
+    return malloc(size);
+}
+
+void* ga_calloc(size_t nmemb, size_t size) {
+    return calloc(nmemb, size);
+}
+
+void* ga_realloc(void* ptr, size_t size) {
+    return realloc(ptr, size);
+}
+
+void ga_free(void* ptr) {
+    free(ptr);
+}
+
+// ============================================================
+// String operations
+// ============================================================
+int ga_strlen(const char* s) {
+    return (int)strlen(s);
+}
+
+char* ga_strdup(const char* s) {
+    size_t len = strlen(s);
+    char* dup = malloc(len + 1);
+    if (dup) {
+        memcpy(dup, s, len + 1);
+    }
+    return dup;
+}
+
+// ============================================================
+// Print functions
+// ============================================================
+void ga_print_string(const char* s) {
+    if (!s) return;
+    size_t len = strlen(s);
+    ssize_t n = write(STDOUT_FILENO, s, len);
+    (void)n; /* best-effort output; errors are ignored by design */
+}
+
+void ga_print_int(int64_t val) {
+    char buf[32];
+    int len = snprintf(buf, sizeof(buf), "%lld", (long long)val);
+    ssize_t n = write(STDOUT_FILENO, buf, (size_t)(len > 0 ? len : 0));
+    (void)n;
+}
+
+void ga_print_float(double val) {
+    char buf[64];
+    int len = snprintf(buf, sizeof(buf), "%g", val);
+    ssize_t n = write(STDOUT_FILENO, buf, (size_t)(len > 0 ? len : 0));
+    (void)n;
+}
+
+void ga_print_bool(bool val) {
+    const char* s = val ? "true" : "false";
+    ssize_t n = write(STDOUT_FILENO, s, strlen(s));
+    (void)n;
+}
+
+// ============================================================
+// Runtime initialization
+// ============================================================
+void ga_runtime_init(void) {
+    // TODO: initialize GC, scheduler, etc.
+}
+
+void ga_runtime_shutdown(void) {
+    // TODO: shutdown GC, scheduler, etc.
+}
