@@ -1,1 +1,106 @@
-IyEvYmluL3NoCiMgVGVzdCBydW5uZXIgZm9yIEdhcnVkYUxhbmcuCiMgUnVucyBlYWNoIHRlc3RkYXRhLyouZ2EsIGNvbXBhcmluZyBzdGRvdXQgYWdhaW5zdCBhIC5leHBlY3RlZCBmaWxlCiMgd2hlbiBvbmUgZXhpc3RzLCBhbmQgY2hlY2tpbmcgdGhhdCB0aGUgY29tcGlsZXIgcmVqZWN0cyB0aGUKIyBjb3JyZXNwb25kaW5nICouYmFkLmdhIGZpbGUgd2hlbiBpdCBkb2VzLgojCiMgQXV0aG9yOiBHYWxhbmdUZWFtCgpzZXQgLXUKCkdBUj0ke0dBUjotLi9iaW4vZ2FyfQpEQVRBPXRlc3RkYXRhCnBhc3M9MApmYWlsPTAKCmlmIFsgISAteCAiJEdBUiIgXTsgdGhlbgogICAgZWNobyAiZXJyb3I6ICRHQVIgbm90IGJ1aWx0LiBSdW4gJ21ha2UnIGZpcnN0LiIgPiYyCiAgICBleGl0IDEKZmkKCmdyZWVuKCkgeyBwcmludGYgJ1wwMzNbMzJtJXNcMDMzWzBtXG4nICIkMSI7IH0KcmVkKCkgICB7IHByaW50ZiAnXDAzM1szMW0lc1wwMzNbMG1cbicgIiQxIjsgfQoKZm9yIHNyYyBpbiAiJERBVEEiLyouZ2E7IGRvCiAgICBbIC1lICIkc3JjIiBdIHx8IGNvbnRpbnVlCiAgICBjYXNlICIkc3JjIiBpbiAqLmJhZC5nYSkgY29udGludWUgOzsgZXNhYwoKICAgIG5hbWU9JChiYXNlbmFtZSAiJHNyYyIgLmdhKQogICAgYmluPSIvdG1wL2dhcl90ZXN0XyRuYW1lIgoKICAgIGlmICEgIiRHQVIiIGJ1aWxkICIkc3JjIiAtbyAiJGJpbiIgPi90bXAvZ2FyX2J1aWxkLmxvZyAyPiYxOyB0aGVuCiAgICAgICAgcmVkICJGQUlMIChidWlsZCkgJG5hbWUiCiAgICAgICAgc2VkICdzL14vICAgICAgLycgL3RtcC9nYXJfYnVpbGQubG9nCiAgICAgICAgZmFpbD0kKChmYWlsICsgMSkpCiAgICAgICAgY29udGludWUKICAgIGZpCgogICAgYWN0dWFsPSQoIiRiaW4iIDI+JjEpCiAgICBleHBlY3RlZF9maWxlPSIkREFUQS8kbmFtZS5leHBlY3RlZCIKCiAgICBpZiBbIC1mICIkZXhwZWN0ZWRfZmlsZSIgXTsgdGhlbgogICAgICAgIGV4cGVjdGVkPSQoY2F0ICIkZXhwZWN0ZWRfZmlsZSIpCiAgICAgICAgaWYgWyAiJGFjdHVhbCIgPSAiJGV4cGVjdGVkIiBdOyB0aGVuCiAgICAgICAgICAgIGdyZWVuICJvayAgICRuYW1lIgogICAgICAgICAgICBwYXNzPSQoKHBhc3MgKyAxKSkKICAgICAgICBlbHNlCiAgICAgICAgICAgIHJlZCAiRkFJTCAob3V0cHV0KSAkbmFtZSIKICAgICAgICAgICAgcHJpbnRmICcgICAgICBleHBlY3RlZDogJXNcbicgIiQocHJpbnRmICclcycgIiRleHBlY3RlZCIgfCBvZCAtYyB8IGhlYWQgLTUpIgogICAgICAgICAgICBwcmludGYgJyAgICAgIGFjdHVhbDogICAlc1xuJyAiJChwcmludGYgJyVzJyAiJGFjdHVhbCIgfCBvZCAtYyB8IGhlYWQgLTUpIgogICAgICAgICAgICBmYWlsPSQoKGZhaWwgKyAxKSkKICAgICAgICBmaQogICAgZWxzZQogICAgICAgIGdyZWVuICJvayAgICRuYW1lIChubyAuZXhwZWN0ZWQsIGJ1aWxkK3J1biBvbmx5KSIKICAgICAgICBwYXNzPSQoKHBhc3MgKyAxKSkKICAgIGZpCgogICAgcm0gLWYgIiRiaW4iCmRvbmUKCiMgTmVnYXRpdmUgdGVzdHM6IGVhY2ggKi5iYWQuZ2EgTVVTVCBiZSByZWplY3RlZCBieSB0aGUgY29tcGlsZXIuCmZvciBzcmMgaW4gIiREQVRBIi8qLmJhZC5nYSAiJERBVEEiL25lZy8qLmJhZC5nYTsgZG8KICAgIFsgLWUgIiRzcmMiIF0gfHwgY29udGludWUKCiAgICBuYW1lPSQoYmFzZW5hbWUgIiRzcmMiIC5iYWQuZ2EpCiAgICBkaXI9JChkaXJuYW1lICIkc3JjIikKCiAgICBpZiAiJEdBUiIgY2hlY2sgIiRzcmMiID4vdG1wL2dhcl9jaGVjay5sb2cgMj4mMTsgdGhlbgogICAgICAgIHJlZCAiRkFJTCAoc2hvdWxkIGJlIHJlamVjdGVkKSAkbmFtZSIKICAgICAgICBmYWlsPSQoKGZhaWwgKyAxKSkKICAgIGVsc2UKICAgICAgICBncmVlbiAib2sgICAkbmFtZSAocmVqZWN0ZWQ6ICQoaGVhZCAtMSAvdG1wL2dhcl9jaGVjay5sb2cpKSIKICAgICAgICBwYXNzPSQoKHBhc3MgKyAxKSkKICAgIGZpCmRvbmUKCiMgTXVsdGktbW9kdWxlIHNjZW5hcmlvcyB0aGF0IGNhbm5vdCBiZSBleHByZXNzZWQgYXMgYSBzaW5nbGUgLmdhIGZpbGUuCmVjaG8KZWNobyAiLS0gbW9kdWxlcyAtLSIKCiMgQW4gaW1wb3J0IGN5Y2xlIG11c3QgYmUgcmVwb3J0ZWQsIG5vdCBoYW5nIGFuZCBub3Qgc2lsZW50bHkgcGFzcy4KaWYgdGltZW91dCAxMCAiJEdBUiIgY2hlY2sgIiREQVRBL25lZy9jeWNsZV9hLmdhIiA+L3RtcC9nYXJfY3ljbGUubG9nIDI+JjE7IHRoZW4KICAgIHJlZCAiRkFJTCAoY2lyY3VsYXIgaW1wb3J0IGFjY2VwdGVkKSIKICAgIGZhaWw9JCgoZmFpbCArIDEpKQplbHNlCiAgICByYz0kPwogICAgaWYgWyAiJHJjIiAtZXEgMTI0IF07IHRoZW4KICAgICAgICByZWQgIkZBSUwgKGh1bmcpIGltcG9ydCBjeWNsZSIKICAgICAgICBmYWlsPSQoKGZhaWwgKyAxKSkKICAgIGVsc2UKICAgICAgICBncmVlbiAib2sgICBpbXBvcnQgY3ljbGUgcmVqZWN0ZWQ6ICQoaGVhZCAtMSAvdG1wL2dhcl9jeWNsZS5sb2cpIgogICAgICAgIHBhc3M9JCgocGFzcyArIDEpKQogICAgZmkKZmkKCiMgQSBtb2R1bGUgcmVhY2hhYmxlIHRocm91Z2ggdHdvIHBhdGhzIG11c3QgYmUgZW1pdHRlZCBleGFjdGx5IG9uY2UuCmlmIEdBUl9WRVJCT1NFPTEgIiRHQVIiIGNoZWNrICIkREFUQS9tb2R1bGVzLmdhIiAyPiYxIHwgZ3JlcCAtcSAiYWxyZWFkeSBsb2FkZWQiOyB0aGVuCiAgICBncmVlbiAib2sgICBkaWFtb25kIGltcG9ydCBkZWR1cGxpY2F0ZWQiCiAgICBwYXNzPSQoKHBhc3MgKyAxKSkKZWxzZQogICAgcmVkICJGQUlMIChkaWFtb25kIGltcG9ydCBub3QgZGVkdXBsaWNhdGVkKSIKICAgIGZhaWw9JCgoZmFpbCArIDEpKQpmaQoKZWNobwplY2hvICJwYXNzZWQ6ICRwYXNzICBmYWlsZWQ6ICRmYWlsIgpbICIkZmFpbCIgLWVxIDAgXQo=
+#!/bin/sh
+# Test runner for GarudaLang.
+# Runs each testdata/*.ga, comparing stdout against a .expected file
+# when one exists, and checking that the compiler rejects the
+# corresponding *.bad.ga file when it does.
+#
+# Author: GalangTeam
+
+set -u
+
+GAR=${GAR:-./bin/gar}
+DATA=testdata
+pass=0
+fail=0
+
+if [ ! -x "$GAR" ]; then
+    echo "error: $GAR not built. Run 'make' first." >&2
+    exit 1
+fi
+
+green() { printf '\033[32m%s\033[0m\n' "$1"; }
+red()   { printf '\033[31m%s\033[0m\n' "$1"; }
+
+for src in "$DATA"/*.ga; do
+    [ -e "$src" ] || continue
+    case "$src" in *.bad.ga) continue ;; esac
+
+    name=$(basename "$src" .ga)
+    bin="/tmp/gar_test_$name"
+
+    if ! "$GAR" build "$src" -o "$bin" >/tmp/gar_build.log 2>&1; then
+        red "FAIL (build) $name"
+        sed 's/^/      /' /tmp/gar_build.log
+        fail=$((fail + 1))
+        continue
+    fi
+
+    actual=$("$bin" 2>&1)
+    expected_file="$DATA/$name.expected"
+
+    if [ -f "$expected_file" ]; then
+        expected=$(cat "$expected_file")
+        if [ "$actual" = "$expected" ]; then
+            green "ok   $name"
+            pass=$((pass + 1))
+        else
+            red "FAIL (output) $name"
+            printf '      expected: %s\n' "$(printf '%s' "$expected" | od -c | head -5)"
+            printf '      actual:   %s\n' "$(printf '%s' "$actual" | od -c | head -5)"
+            fail=$((fail + 1))
+        fi
+    else
+        green "ok   $name (no .expected, build+run only)"
+        pass=$((pass + 1))
+    fi
+
+    rm -f "$bin"
+done
+
+# Negative tests: each *.bad.ga MUST be rejected by the compiler.
+for src in "$DATA"/*.bad.ga "$DATA"/neg/*.bad.ga; do
+    [ -e "$src" ] || continue
+
+    name=$(basename "$src" .bad.ga)
+    dir=$(dirname "$src")
+
+    if "$GAR" check "$src" >/tmp/gar_check.log 2>&1; then
+        red "FAIL (should be rejected) $name"
+        fail=$((fail + 1))
+    else
+        green "ok   $name (rejected: $(head -1 /tmp/gar_check.log))"
+        pass=$((pass + 1))
+    fi
+done
+
+# Multi-module scenarios that cannot be expressed as a single .ga file.
+echo
+echo "-- modules --"
+
+# An import cycle must be reported, not hang and not silently pass.
+if timeout 10 "$GAR" check "$DATA/neg/cycle_a.ga" >/tmp/gar_cycle.log 2>&1; then
+    red "FAIL (circular import accepted)"
+    fail=$((fail + 1))
+else
+    rc=$?
+    if [ "$rc" -eq 124 ]; then
+        red "FAIL (hung) import cycle"
+        fail=$((fail + 1))
+    else
+        green "ok   import cycle rejected: $(head -1 /tmp/gar_cycle.log)"
+        pass=$((pass + 1))
+    fi
+fi
+
+# A module reachable through two paths must be emitted exactly once.
+if GAR_VERBOSE=1 "$GAR" check "$DATA/modules.ga" 2>&1 | grep -q "already loaded"; then
+    green "ok   diamond import deduplicated"
+    pass=$((pass + 1))
+else
+    red "FAIL (diamond import not deduplicated)"
+    fail=$((fail + 1))
+fi
+
+echo
+echo "passed: $pass  failed: $fail"
+[ "$fail" -eq 0 ]
