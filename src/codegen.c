@@ -203,6 +203,27 @@ static void emit_write_string(CodegenCtx* ctx, const char* value) {
              idx, (int)strlen(value));
 }
 
+// Write a NUL-terminated C string whose address is in %rax.
+static void emit_write_cstr(CodegenCtx* ctx) {
+    char* l1 = new_label(ctx);
+    char* l2 = new_label(ctx);
+    asm_emit(ctx->buf,
+             "\tmovq %%rax, %%rsi\n"
+             "\txorq %%rcx, %%rcx\n"
+             "%s:\n"
+             "\tcmpb $0, (%%rsi,%%rcx,1)\n"
+             "\tje %s\n"
+             "\tincq %%rcx\n"
+             "\tjmp %s\n"
+             "%s:\n"
+             "\tmovq %%rcx, %%rdx\n"
+             "\tmovq $1, %%rax\n"
+             "\tmovq $1, %%rdi\n"
+             "\tsyscall\n",
+             l1, l2, l1, l2);
+    free(l1); free(l2);
+}
+
 // Convert the integer in %rax to decimal ASCII on stdout.
 static void emit_write_int(CodegenCtx* ctx) {
     asm_emit(ctx->buf,
@@ -437,6 +458,7 @@ static void emit_print_arg(CodegenCtx* ctx, ASTNode* arg) {
             if (!off) return;   // unknown; the checker reports this
             emit_load_slot(ctx, off, t);
             if (t == TY_FLOAT) emit_write_float(ctx);
+            else if (t == TY_STRING) emit_write_cstr(ctx);
             else              emit_write_int(ctx);
             break;
         }
@@ -444,9 +466,11 @@ static void emit_print_arg(CodegenCtx* ctx, ASTNode* arg) {
         // expression never falls through to the integer path.
         case AST_BINARY:
         case AST_CALL:
+        case AST_BUILTIN:
         case AST_UNARY:
             emit_expr(ctx, arg);
             if (arg->tag == TY_FLOAT) emit_write_float(ctx);
+            else if (arg->tag == TY_STRING) emit_write_cstr(ctx);
             else                     emit_write_int(ctx);
             break;
         default:
@@ -619,6 +643,25 @@ static void emit_stmt(CodegenCtx* ctx, ASTNode* stmt) {
 
         default:
             break;
+    }
+}
+
+// Emit call arguments per SysV AMD64: floats -> %xmm0.., the rest -> %rdi...
+// NOTE: only the first 6 GPR args are passed; builtins are designed within
+// this limit. (User functions with >6 args are a known limitation.)
+static void emit_call_args(CodegenCtx* ctx, ASTNode** args, int arg_count) {
+    static const char* gpr_args[] = { "%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9" };
+    static const char* sse_args[] = { "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+                                      "%xmm4", "%xmm5", "%xmm6", "%xmm7" };
+    int gpr = 0, sse = 0;
+    for (int i = 0; i < arg_count; i++) {
+        ASTNode* a = args[i];
+        emit_expr(ctx, a);
+        if (a && a->tag == TY_FLOAT) {
+            if (sse < 8) asm_emit(ctx->buf, "\tmovsd %%xmm0, %s\n", sse_args[sse++]);
+        } else {
+            if (gpr < 6) asm_emit(ctx->buf, "\tmovq %%rax, %s\n", gpr_args[gpr++]);
+        }
     }
 }
 
@@ -871,22 +914,17 @@ static void emit_expr(CodegenCtx* ctx, ASTNode* expr) {
 
         case AST_CALL: {
             ASTCall* call = (ASTCall*)expr;
-            // SysV classifies arguments into two independent sequences:
-            // floats go in %xmmN, everything else in the general registers.
-            static const char* gpr_args[] = { "%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9" };
-            static const char* sse_args[] = { "%xmm0", "%xmm1", "%xmm2", "%xmm3",
-                                              "%xmm4", "%xmm5", "%xmm6", "%xmm7" };
-            int gpr = 0, sse = 0;
-            for (int i = 0; i < call->arg_count; i++) {
-                ASTNode* a = call->args[i];
-                emit_expr(ctx, a);
-                if (a && a->tag == TY_FLOAT) {
-                    if (sse < 8) asm_emit(ctx->buf, "\tmovsd %%xmm0, %s\n", sse_args[sse++]);
-                } else {
-                    if (gpr < 6) asm_emit(ctx->buf, "\tmovq %%rax, %s\n", gpr_args[gpr++]);
-                }
-            }
+            emit_call_args(ctx, call->args, call->arg_count);
             asm_emit(ctx->buf, "\tcall %s\n", call->callee);
+            break;
+        }
+
+        case AST_BUILTIN: {
+            // System builtin: lowered to a raw-syscall helper in syslib.o.
+            // All builtins take <= 6 GPR args, so the shared emitter fits.
+            ASTBuiltin* b = (ASTBuiltin*)expr;
+            emit_call_args(ctx, b->args, b->arg_count);
+            asm_emit(ctx->buf, "\tcall ga_%s\n", b->name);
             break;
         }
 
@@ -966,6 +1004,10 @@ static void generate_assembly(ASTProgram* program, AsmBuffer* b, Error* error) {
         ".type _start, @function\n"
         "_start:\n"
         "\txorl %%ebp, %%ebp\n"
+        // Save envp for ga_sys_env: rsp -> [argc][argv...][NULL][envp...]
+        "\tmovq (%%rsp), %%rax\n"
+        "\tleaq 16(%%rsp,%%rax,8), %%rax\n"
+        "\tmovq %%rax, ga_envp(%%rip)\n"
         "\tcall main\n"
         "\tmovq %%rax, %%rdi\n"
         "\tmovq $60, %%rax\n"
@@ -984,7 +1026,7 @@ static void generate_assembly(ASTProgram* program, AsmBuffer* b, Error* error) {
 
     asm_emit(b, ".section .rodata\n");
     for (int i = 0; i < b->string_count; i++) {
-        asm_emit(b, "str_%d:\n\t.ascii ", i);
+        asm_emit(b, "str_%d:\n\t.asciz ", i);
         emit_escaped_string(b, b->strings[i]);
         asm_emit(b, "\n");
     }
@@ -1015,6 +1057,34 @@ static void generate_assembly(ASTProgram* program, AsmBuffer* b, Error* error) {
 }
 
 // ============================================================
+// Locate syslib.o (freestanding system library). Search order:
+//   1. $GAR_SYSLIB environment variable
+//   2. directory containing the running `gar` binary (/proc/self/exe)
+//   3. ./bin/syslib.o (development checkout)
+static bool find_syslib(char* out, size_t out_size) {
+    const char* env = getenv("GAR_SYSLIB");
+    if (env && access(env, R_OK) == 0) {
+        snprintf(out, out_size, "%s", env);
+        return true;
+    }
+    char exe[512];
+    ssize_t n = readlink("/proc/self/exe", exe, sizeof(exe) - 1);
+    if (n > 0) {
+        exe[n] = 0;
+        char* slash = strrchr(exe, '/');
+        if (slash) {
+            *slash = 0;
+            snprintf(out, out_size, "%s/syslib.o", exe);
+            if (access(out, R_OK) == 0) return true;
+        }
+    }
+    if (access("./bin/syslib.o", R_OK) == 0) {
+        snprintf(out, out_size, "./bin/syslib.o");
+        return true;
+    }
+    return false;
+}
+
 // Compile assembly to binary
 // ============================================================
 static bool compile_assembly(const char* asm_path, const char* output_path, Error* error) {
@@ -1033,7 +1103,14 @@ static bool compile_assembly(const char* asm_path, const char* output_path, Erro
 
     // Freestanding link: the generated code talks to the kernel directly and
     // references no libc symbol, so no dynamic loader is involved.
-    snprintf(cmd, sizeof(cmd), "ld -o %s %s 2>&1", output_path, obj_path);
+    // syslib.o (raw-syscall helpers) is linked statically.
+    char syslib[512];
+    if (!find_syslib(syslib, sizeof(syslib))) {
+        set_error(error, "syslib.o not found (build with `make`; or set $GAR_SYSLIB)", 0, 0);
+        unlink(obj_path);
+        return false;
+    }
+    snprintf(cmd, sizeof(cmd), "ld -o %s %s %s 2>&1", output_path, obj_path, syslib);
     if (system(cmd) != 0) {
         set_error(error, "Linker (ld) failed", 0, 0);
         unlink(obj_path);
