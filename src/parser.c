@@ -19,11 +19,11 @@
 // validates arity and argument types; see docs/system-access.md.
 // ============================================================
 static const char* const BUILTIN_NAMES[] = {
-    "fs_read",    // fs_read(path: string) -> string
-    "fs_write",   // fs_write(path: string, data: string) -> int
-    "sys_env",    // sys_env(name: string) -> string
-    "sys_time",   // sys_time() -> int
-    "sys_sleep",  // sys_sleep(ms: int) -> void
+    "fs_read", "fs_write",
+    "sys_env", "sys_time", "sys_sleep",
+    "http_get", "http_post", "http_code", "http_serve_once",
+    "smtp_connect", "smtp_auth", "smtp_mail", "smtp_close",
+    "serial_open", "serial_read", "serial_write", "serial_close",
     NULL
 };
 
