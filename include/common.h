@@ -169,7 +169,8 @@ typedef enum {
     AST_OPTION_TYPE,
     AST_RESULT_TYPE,
     AST_PRINT,
-    AST_IMPORT
+    AST_IMPORT,
+    AST_BUILTIN
 } ASTNodeType;
 
 // Forward declarations
