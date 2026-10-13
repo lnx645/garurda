@@ -1,0 +1,14 @@
+// System access builtins: fs, sys (local only, no network).
+fn main() {
+    print("w:");
+    print(fs_write("/tmp/gar_sysaccess.txt", "hi"));
+    print(" r:");
+    print(fs_read("/tmp/gar_sysaccess.txt"));
+    print(" t:");
+    print(sys_time() > 1000000000);
+    print(" e:");
+    print(sys_env("GAR_NO_SUCH_VAR_XYZ"));
+    print(" s:");
+    sys_sleep(5);
+    print(7);
+}
