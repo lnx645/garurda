@@ -1,1 +1,70 @@
-IyA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KIyBHYXJ1ZGFMYW5nIChHYUxhbmcpIENvbXBpbGVyIOKAlCBNYWtlZmlsZQojIEF1dGhvcjogR2FsYW5nVGVhbQojID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQoKQ0MgICAgICA9IGdjYwpDRkxBR1MgID0gLVdhbGwgLVdleHRyYSAtc3RkPWMxMSAtTzIgLUlpbmNsdWRlCkxERkxBR1MgPSAtbG0KClNSQ0RJUiAgPSBzcmMKSU5DRElSICA9IGluY2x1ZGUKT0JKRElSICA9IG9iagpCSU5ESVIgID0gYmluClRFU1RESVIgPSB0ZXN0ZGF0YQoKVEFSR0VUICA9ICQoQklORElSKS9nYXIKClNSQ1MgPSAkKFNSQ0RJUikvbWFpbi5jIFwKICAgICAgICQoU1JDRElSKS9hc3QuYyBcCiAgICAgICAkKFNSQ0RJUikvbGV4ZXIuYyBcCiAgICAgICAkKFNSQ0RJUikvcGFyc2VyLmMgXAogICAgICAgJChTUkNESVIpL3Jlc29sdmVyLmMgXAogICAgICAgJChTUkNESVIpL2NoZWNrZXIuYyBcCiAgICAgICAkKFNSQ0RJUikvY29kZWdlbi5jIFwKICAgICAgICQoU1JDRElSKS9ydW50aW1lLmMKCk9CSlMgPSAkKHBhdHN1YnN0ICQoU1JDRElSKS8lLmMsJChPQkpESVIpLyUubywkKFNSQ1MpKQpERVBTID0gJChPQkpTOi5vPS5kKQoKLlBIT05ZOiBhbGwgY2xlYW4gcnVuIHRlc3Qgc2FuaXRpemUKCmFsbDogJChUQVJHRVQpCgokKFRBUkdFVCk6ICQoT0JKUykKCUBta2RpciAtcCAkKEJJTkRJUikKCSQoQ0MpICQoT0JKUykgLW8gJEAgJChMREZMQUdTKQoJQGVjaG8gIkJ1aWx0ICQoVEFSR0VUKSIKCiQoT0JKRElSKS8lLm86ICQoU1JDRElSKS8lLmMgJCh3aWxkY2FyZCAkKElOQ0RJUikvKi5oKQoJQG1rZGlyIC1wICQoT0JKRElSKQoJJChDQykgJChDRkxBR1MpIC1NTUQgLU1QIC1jICQ8IC1vICRACgpjbGVhbjoKCXJtIC1yZiAkKE9CSkRJUikgJChCSU5ESVIpCglybSAtZiAkKFRFU1RESVIpL2hlbGxvICQoVEVTVERJUikvaWZlbHNlICQoVEVTVERJUikvbG9vcCBcCgkgICAgICAkKFRFU1RESVIpL2xvb3BzICQoVEVTVERJUikvbnVtYmVycyAkKFRFU1RESVIpL2ZhY3RvcmlhbAoKcnVuOiBhbGwKCS4vJChUQVJHRVQpIHJ1biAkKFRFU1RESVIpL2hlbGxvLmdhCgp0ZXN0OiBhbGwKCS4vcnVuX3Rlc3RzLnNoCgojIEJ1aWxkIHdpdGggQWRkcmVzc1Nhbml0aXplciArIFVCU2FuIGFuZCBydW4gdGhlIHRlc3Qgc3VpdGUgYWdhaW5zdCBpdCwKIyBzbyB0aGUgIkFTQU4vVUJTQU4gYmVyc2loIiBjbGFpbSBpbiBSRUFETUUgc3RheXMgdmVyaWZpYWJsZS4Kc2FuaXRpemU6CglAbWtkaXIgLXAgJChCSU5ESVIpCgkkKENDKSAtV2FsbCAtV2V4dHJhIC1zdGQ9YzExIC1nIC1PMSAtZnNhbml0aXplPWFkZHJlc3MsdW5kZWZpbmVkIFwKCQktZm5vLW9taXQtZnJhbWUtcG9pbnRlciAtSSQoSU5DRElSKSAkKFNSQ1MpIC1vICQoQklORElSKS9nYXJfc2FuICQoTERGTEFHUykKCUBlY2hvICJCdWlsdCAkKEJJTkRJUikvZ2FyX3NhbiAoQVNhbitVQlNhbikiCglHQVI9JChCSU5ESVIpL2dhcl9zYW4gLi9ydW5fdGVzdHMuc2gKCiMgSW5zcGVjdCB0aGUgZ2VuZXJhdGVkIGFzc2VtYmx5IGZvciBhIHByb2dyYW06ICBtYWtlIGFzbSBGSUxFPXRlc3RkYXRhL2xvb3AuZ2EKYXNtOiBhbGwKCUdBUl9LRUVQX0FTTT0xIC4vJChUQVJHRVQpIGJ1aWxkICQoRklMRSkKCUBlY2hvICItLS0gYXNzZW1ibHkgLS0tIgoJQGNhdCAvdG1wL2dhcl8kJC5hc20gMj4vZGV2L251bGwgfHwgbHMgLXQgL3RtcC9nYXJfKi5hc20gfCBoZWFkIC0xIHwgeGFyZ3MgY2F0CgojIEF1dG8tZ2VuZXJhdGVkIGhlYWRlciBkZXBlbmRlbmNpZXMgKHNvIGVkaXRpbmcgYSAuaCByZWJ1aWxkcyBpdHMgdXNlcnMpLgotaW5jbHVkZSAkKERFUFMpCg==
+# ============================================================
+# GarudaLang (GaLang) Compiler — Makefile
+# Author: GalangTeam
+# ============================================================
+
+CC      = gcc
+CFLAGS  = -Wall -Wextra -std=c11 -O2 -Iinclude
+LDFLAGS = -lm
+
+SRCDIR  = src
+INCDIR  = include
+OBJDIR  = obj
+BINDIR  = bin
+TESTDIR = testdata
+
+TARGET  = $(BINDIR)/gar
+
+SRCS = $(SRCDIR)/main.c \
+       $(SRCDIR)/ast.c \
+       $(SRCDIR)/lexer.c \
+       $(SRCDIR)/parser.c \
+       $(SRCDIR)/resolver.c \
+       $(SRCDIR)/checker.c \
+       $(SRCDIR)/codegen.c \
+       $(SRCDIR)/runtime.c
+
+OBJS = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SRCS))
+DEPS = $(OBJS:.o=.d)
+
+.PHONY: all clean run test sanitize
+
+all: $(TARGET)
+
+$(TARGET): $(OBJS)
+	@mkdir -p $(BINDIR)
+	$(CC) $(OBJS) -o $@ $(LDFLAGS)
+	@echo "Built $(TARGET)"
+
+$(OBJDIR)/%.o: $(SRCDIR)/%.c $(wildcard $(INCDIR)/*.h)
+	@mkdir -p $(OBJDIR)
+	$(CC) $(CFLAGS) -MMD -MP -c $< -o $@
+
+clean:
+	rm -rf $(OBJDIR) $(BINDIR)
+	rm -f $(TESTDIR)/hello $(TESTDIR)/ifelse $(TESTDIR)/loop \
+	      $(TESTDIR)/loops $(TESTDIR)/numbers $(TESTDIR)/factorial
+
+run: all
+	./$(TARGET) run $(TESTDIR)/hello.ga
+
+test: all
+	./run_tests.sh
+
+# Build with AddressSanitizer + UBSan and run the test suite against it,
+# so the "ASAN/UBSAN bersih" claim in README stays verifiable.
+sanitize:
+	@mkdir -p $(BINDIR)
+	$(CC) -Wall -Wextra -std=c11 -g -O1 -fsanitize=address,undefined \
+		-fno-omit-frame-pointer -I$(INCDIR) $(SRCS) -o $(BINDIR)/gar_san $(LDFLAGS)
+	@echo "Built $(BINDIR)/gar_san (ASan+UBSan)"
+	GAR=$(BINDIR)/gar_san ./run_tests.sh
+
+# Inspect the generated assembly for a program:  make asm FILE=testdata/loop.ga
+asm: all
+	GAR_KEEP_ASM=1 ./$(TARGET) build $(FILE)
+	@echo "--- assembly ---"
+	@cat /tmp/gar_$$.asm 2>/dev/null || ls -t /tmp/gar_*.asm | head -1 | xargs cat
+
+# Auto-generated header dependencies (so editing a .h rebuilds its users).
+-include $(DEPS)
