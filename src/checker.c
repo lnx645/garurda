@@ -317,7 +317,71 @@ static const char* check_expr_raw(ASTNode* node, Error* error) {
             }
             return type_intern(sig->return_type);
         }
-        
+
+        case AST_BUILTIN: {
+            // System access builtins. Signatures are fixed; the code
+            // generator lowers each to ga_<name> in syslib.o.
+            // See docs/system-access.md for the catalog and semantics.
+            static const struct { const char* name; const char* params[8];
+                                  int arity; const char* ret; } builtins[] = {
+                { "fs_read",        {"string"}, 1, "string" },
+                { "fs_write",       {"string","string"}, 2, "int" },
+                { "sys_env",        {"string"}, 1, "string" },
+                { "sys_time",       {}, 0, "int" },
+                { "sys_sleep",      {"int"}, 1, "void" },
+                { "http_get",       {"string"}, 1, "string" },
+                { "http_post",      {"string","string"}, 2, "string" },
+                { "http_code",      {}, 0, "int" },
+                { "http_serve_once",{"int","string"}, 2, "string" },
+                { "smtp_connect",   {"string","int"}, 2, "int" },
+                { "smtp_auth",      {"int","string","string"}, 3, "int" },
+                { "smtp_mail",      {"int","string","string","string","string"}, 5, "int" },
+                { "smtp_close",     {"int"}, 1, "void" },
+                { "serial_open",    {"string","int"}, 2, "int" },
+                { "serial_read",    {"int","int"}, 2, "string" },
+                { "serial_write",   {"int","string"}, 2, "int" },
+                { "serial_close",   {"int"}, 1, "void" },
+                { 0 }
+            };
+            ASTBuiltin* b = (ASTBuiltin*)node;
+            const char* ret = 0;
+            int arity = -1;
+            const char** params = 0;
+            for (int i = 0; builtins[i].name; i++) {
+                if (strcmp(b->name, builtins[i].name) == 0) {
+                    ret = builtins[i].ret;
+                    arity = builtins[i].arity;
+                    params = builtins[i].params;
+                    break;
+                }
+            }
+            if (!ret) {
+                snprintf(error->message, sizeof(error->message),
+                         "Unknown builtin '%s'", b->name);
+                error->has_error = true;
+                return NULL;
+            }
+            if (b->arg_count != arity) {
+                snprintf(error->message, sizeof(error->message),
+                         "'%s' expects %d argument(s), got %d",
+                         b->name, arity, b->arg_count);
+                error->has_error = true;
+                return NULL;
+            }
+            for (int i = 0; i < arity; i++) {
+                const char* t = check_expr(b->args[i], error);
+                if (error->has_error) return NULL;
+                if (strcmp(t, params[i]) != 0) {
+                    snprintf(error->message, sizeof(error->message),
+                             "'%s' argument %d must be %s, got %s",
+                             b->name, i + 1, params[i], t);
+                    error->has_error = true;
+                    return NULL;
+                }
+            }
+            return ret;
+        }
+
         case AST_UNARY: {
             ASTUnary* un = (ASTUnary*)node;
             const char* t = check_expr(un->operand, error);
