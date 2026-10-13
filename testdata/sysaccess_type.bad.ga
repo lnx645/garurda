@@ -1,0 +1,5 @@
+// Builtin argument types are checked: fs_read wants a string.
+fn main() {
+    let x: string = fs_read(123);
+    print(x);
+}
