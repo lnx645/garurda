@@ -177,6 +177,16 @@ void ast_free(ASTNode* node) {
             free(call);
             break;
         }
+        case AST_BUILTIN: {
+            ASTBuiltin* b = (ASTBuiltin*)node;
+            free(b->name);
+            for (int i = 0; i < b->arg_count; i++) {
+                ast_free(b->args[i]);
+            }
+            free(b->args);
+            free(b);
+            break;
+        }
         case AST_IDENT: {
             ASTIdent* ident = (ASTIdent*)node;
             free(ident->name);
