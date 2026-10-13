@@ -38,6 +38,7 @@ typedef struct ASTSome ASTSome;
 typedef struct ASTNone ASTNone;
 typedef struct ASTPrint ASTPrint;
 typedef struct ASTImport ASTImport;
+typedef struct ASTBuiltin ASTBuiltin;
 
 // ============================================================
 // AST Node (base)
@@ -284,6 +285,22 @@ struct ASTNone {
 // ============================================================
 struct ASTPrint {
     ASTNode base;
+    ASTNode** args;
+    int arg_count;
+    int arg_capacity;
+};
+
+// ============================================================
+// Builtin call (system access)
+//
+// `name` is the GaLang-level name, e.g. "fs_read". The code
+// generator lowers it to a runtime call to `ga_<name>`.
+// Signatures are validated by the type checker against a table;
+// see docs/system-access.md for the full catalog.
+// ============================================================
+struct ASTBuiltin {
+    ASTNode base;
+    char* name;
     ASTNode** args;
     int arg_count;
     int arg_capacity;
